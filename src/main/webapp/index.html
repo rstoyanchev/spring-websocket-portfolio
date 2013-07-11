@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Stock Trading Portfolio</title>
+    <link href="assets/css/portfolio.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="main-content">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Ticker</th>
+              <th class="number">Price</th>
+              <th class="number">Change</th>
+              <th>%</th>
+              <th class="number">Shares</th>
+              <th class="number">Value</th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: portfolioRows">
+            <tr>
+              <td data-bind="text: company"></td>
+              <td data-bind="text: ticker"></td>
+              <td data-bind="text: formattedPrice" class="number"></td>
+              <td data-bind="text: change, style: {color: change() < 0 ? 'red' : 'green'}" class="number"></td>
+              <td data-bind="html: arrow" class="icon"></td>
+              <td data-bind="text: shares" class="number"></td>
+              <td data-bind="text: formattedValue" class="number"></td>
+             </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5">Total value:</td>
+              <td data-bind="text: totalShares" class="number"></td>
+              <td data-bind="text: totalValue" class="number"></td>
+            </tr>
+          </tfoot>
+          <tbody></tbody>
+        </table>
+      </div>
+<!--
+     <form class="form-signin">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <input type="text" class="input-block-level" placeholder="Email address">
+        <input type="password" class="input-block-level" placeholder="Password">
+        <label class="checkbox">
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+        <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+      </form>
+ -->
+    </div> <!-- /container -->
+
+    <!-- 3rd party -->
+    <script src="assets/js/jquery-1.8.3.js"></script>
+    <script src="assets/js/knockout-2.3.0.js"></script>
+    <script src="assets/js/sockjs-0.3.4.js"></script>
+    <script src="assets/js/stomp.js"></script>
+
+    <!-- Application -->
+    <script src="assets/js/portfolio-viewModel.js"></script>
+    <script type="text/javascript">
+
+			var viewModel = new PortfolioViewModel();
+			ko.applyBindings(viewModel);
+
+			var socket = new SockJS('/spring-websocket-portfolio/portfolio');
+			var stompClient = Stomp.over(socket);
+
+			var onConnect = function(frame) {
+
+				console.log('Connected ' + frame);
+
+				stompClient.subscribe("/positions", function(message) {
+					console.log('Portfolio: ' + message.body);
+					var positions = JSON.parse(message.body);
+					viewModel.loadPositions(positions);
+				});
+
+				stompClient.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
+          var quote = JSON.parse(message.body);
+					viewModel.processQuote(quote);
+				});
+			}
+
+			var onError = function(error) {
+				console.log('error ' + error);
+			}
+
+			stompClient.connect('guest', 'guest', onConnect, onError, '/');
+			
+		</script>
+
+  <!--     
+    <script src="assets/js/bootstrap-transition.js"></script>
+    <script src="assets/js/bootstrap-alert.js"></script>
+    <script src="assets/js/bootstrap-modal.js"></script>
+    <script src="assets/js/bootstrap-dropdown.js"></script>
+    <script src="assets/js/bootstrap-scrollspy.js"></script>
+    <script src="assets/js/bootstrap-tab.js"></script>
+    <script src="assets/js/bootstrap-tooltip.js"></script>
+    <script src="assets/js/bootstrap-popover.js"></script>
+    <script src="assets/js/bootstrap-button.js"></script>
+    <script src="assets/js/bootstrap-collapse.js"></script>
+    <script src="assets/js/bootstrap-carousel.js"></script>
+    <script src="assets/js/bootstrap-typeahead.js"></script>
+ -->
+  </body>
+</html>
