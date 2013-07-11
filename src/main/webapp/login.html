@@ -9,16 +9,13 @@
 <body>
   <div class="container">
     <div data-bind="visible: showErrorMessage" class="alert alert-error">
-      <p>Error</p>
+      <p>Invalid username/password.</p>
     </div>
-    <form class="form-signin">
+    <form class="form-signin" method="post" action="login.html">
       <h2 class="form-signin-heading">Please sign in</h2>
       <input type="text" class="input-block-level"
-        placeholder="User name"> <input type="password"
-        class="input-block-level" placeholder="Password"> <label
-        class="checkbox"> <input type="checkbox"
-        value="remember-me"> Remember me
-      </label>
+        placeholder="User name" name="username"> <input type="password"
+        class="input-block-level" placeholder="Password" name="password">
       <button class="btn btn-large btn-primary" type="submit">Sign
         in</button>
     </form>
