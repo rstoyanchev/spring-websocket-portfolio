@@ -19,11 +19,11 @@
 	</logger>
 
 	<logger name="org.springframework.web.socket">
-		<level value="trace" />
+		<level value="debug" />
 	</logger>
 
 	<logger name="org.springframework.web.messaging">
-		<level value="trace" />
+		<level value="debug" />
 	</logger>
 
 	<root>

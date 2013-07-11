@@ -9,7 +9,8 @@
   <body>
     <div class="container">
       <div class="main-content">
-        <table class="table table-striped">
+      
+        <table id="portfolioTable" class="table table-striped">
           <thead>
             <tr>
               <th>Company</th>
@@ -19,6 +20,7 @@
               <th>%</th>
               <th class="number">Shares</th>
               <th class="number">Value</th>
+              <th></th>
             </tr>
           </thead>
           <tbody data-bind="foreach: portfolioRows">
@@ -30,6 +32,10 @@
               <td data-bind="html: arrow" class="icon"></td>
               <td data-bind="text: shares" class="number"></td>
               <td data-bind="text: formattedValue" class="number"></td>
+              <td class="trade-buttons">
+                <button class="btn btn-primary" data-bind="click: $parent.trade().showBuy">Buy</button>
+                <button class="btn btn-primary" data-bind="click: $parent.trade().showSell">Sell</button>
+              </td>
              </tr>
           </tbody>
           <tfoot>
@@ -37,27 +43,33 @@
               <td colspan="5">Total value:</td>
               <td data-bind="text: totalShares" class="number"></td>
               <td data-bind="text: totalValue" class="number"></td>
+              <td></td>
             </tr>
           </tfoot>
           <tbody></tbody>
         </table>
+
+        <div id="tradeDialog" class="modal hide fade" tabindex="-1">
+          <div class="modal-body">
+            <form class="form-trade" data-bind="submit: trade().executeTrade">
+              <h2 class="form-trade-heading"><span data-bind="text: trade().action"></span>
+                <span data-bind="text: trade().selectedRow().ticker"></span> shares:</h2>
+              <input type="text" data-bind="value: trade().shares" class="input-block-level" placeholder="Shares">
+              <button class="btn" data-dismiss="modal">Close</button>
+              <button class="btn btn-primary" type="submit">
+                <span data-bind="text: trade().action"></span>
+              </button>
+            </form>
+          </div>
+        </div>
+
       </div>
-<!--
-     <form class="form-signin">
-        <h2 class="form-signin-heading">Please sign in</h2>
-        <input type="text" class="input-block-level" placeholder="Email address">
-        <input type="password" class="input-block-level" placeholder="Password">
-        <label class="checkbox">
-          <input type="checkbox" value="remember-me"> Remember me
-        </label>
-        <button class="btn btn-large btn-primary" type="submit">Sign in</button>
-      </form>
- -->
     </div> <!-- /container -->
 
     <!-- 3rd party -->
     <script src="assets/js/jquery-1.8.3.js"></script>
     <script src="assets/js/knockout-2.3.0.js"></script>
+    <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/sockjs-0.3.4.js"></script>
     <script src="assets/js/stomp.js"></script>
 
@@ -65,49 +77,34 @@
     <script src="assets/js/portfolio-viewModel.js"></script>
     <script type="text/javascript">
 
-			var viewModel = new PortfolioViewModel();
-			ko.applyBindings(viewModel);
-
 			var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-			var stompClient = Stomp.over(socket);
+			var client = Stomp.over(socket);
+			
+		  var model = new PortfolioModel(client);
+		  ko.applyBindings(model);
 
 			var onConnect = function(frame) {
 
 				console.log('Connected ' + frame);
 
-				stompClient.subscribe("/positions", function(message) {
-					console.log('Portfolio: ' + message.body);
+				client.subscribe("/positions", function(message) {
 					var positions = JSON.parse(message.body);
-					viewModel.loadPositions(positions);
+					model.loadPositions(positions);
 				});
 
-				stompClient.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
+				client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
           var quote = JSON.parse(message.body);
-					viewModel.processQuote(quote);
+          model.processQuote(quote);
 				});
 			}
 
 			var onError = function(error) {
 				console.log('error ' + error);
 			}
-
-			stompClient.connect('guest', 'guest', onConnect, onError, '/');
+			
+			client.connect('guest', 'guest', onConnect, onError, '/');
 			
 		</script>
-
-  <!--     
-    <script src="assets/js/bootstrap-transition.js"></script>
-    <script src="assets/js/bootstrap-alert.js"></script>
-    <script src="assets/js/bootstrap-modal.js"></script>
-    <script src="assets/js/bootstrap-dropdown.js"></script>
-    <script src="assets/js/bootstrap-scrollspy.js"></script>
-    <script src="assets/js/bootstrap-tab.js"></script>
-    <script src="assets/js/bootstrap-tooltip.js"></script>
-    <script src="assets/js/bootstrap-popover.js"></script>
-    <script src="assets/js/bootstrap-button.js"></script>
-    <script src="assets/js/bootstrap-collapse.js"></script>
-    <script src="assets/js/bootstrap-carousel.js"></script>
-    <script src="assets/js/bootstrap-typeahead.js"></script>
- -->
+    
   </body>
 </html>

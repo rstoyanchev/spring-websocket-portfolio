@@ -23,6 +23,32 @@ body {
 	text-align: right;
 }
 
+.table td.trade-buttons {
+  text-align: center;
+}
+
 .table tfoot {
 	font-weight: bold;
+}
+
+#tradeDialog {
+  max-width: 450px;
+}
+
+.form-trade {
+  max-width: 300px;
+  padding: 19px 29px 29px;
+  margin: 0 auto 20px;
+  background-color: #fff;
+}
+
+.form-trade .form-trade-heading {
+  margin-bottom: 10px;
+}
+
+.form-trade input[type="text"] {
+  font-size: 16px;
+  height: auto;
+  margin-bottom: 15px;
+  padding: 7px 9px;
 }
