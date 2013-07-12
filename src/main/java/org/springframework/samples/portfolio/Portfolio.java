@@ -1,20 +1,22 @@
 package org.springframework.samples.portfolio;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Portfolio {
 
-	private final List<PortfolioPosition> positions = new ArrayList<PortfolioPosition>();
-
+	private final Map<String,PortfolioPosition> tickerToPortfolioPosition = new HashMap<String,PortfolioPosition>();
 
 	public PortfolioPosition[] getPositions() {
-		return this.positions.toArray(new PortfolioPosition[this.positions.size()]);
+		return this.tickerToPortfolioPosition.values().toArray(new PortfolioPosition[this.tickerToPortfolioPosition.size()]);
 	}
 
 	public void addPosition(PortfolioPosition position) {
-		this.positions.add(position);
+		this.tickerToPortfolioPosition.put(position.getTicker(),position);
 	}
 
+	public PortfolioPosition getPortfolioPosition(String ticker) {
+		return tickerToPortfolioPosition.get(ticker);
+	}
 }

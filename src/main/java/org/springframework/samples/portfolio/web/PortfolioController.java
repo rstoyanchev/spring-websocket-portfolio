@@ -41,7 +41,6 @@ public class PortfolioController {
 
 		logger.debug("Trade request: " + tradeRequest);
 
-		// TODO: execute
+		portfolioService.trade(null, tradeRequest);
 	}
-
 }

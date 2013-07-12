@@ -110,10 +110,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		Portfolio portfolio = new Portfolio();
 		portfolio.addPosition(new PortfolioPosition("Citrix Systems, Inc.", "CTXS", 24.30, 75));
 		portfolio.addPosition(new PortfolioPosition("Dell Inc.", "DELL", 13.44, 50));
-		portfolio.addPosition(new PortfolioPosition("EMC Corporation", "EMC", 24.30, 75));
-		portfolio.addPosition(new PortfolioPosition("Google Inc", "GOOG", 905.09, 5));
 		portfolio.addPosition(new PortfolioPosition("Microsoft", "MSFT", 34.15, 33));
-		portfolio.addPosition(new PortfolioPosition("VMware, Inc.", "VMW", 65.58, 23));
 		return portfolio;
 	}
 
