@@ -15,45 +15,16 @@
  */
 package org.springframework.samples.portfolio.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.samples.portfolio.Portfolio;
-import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.web.TradeRequest;
-import org.springframework.samples.portfolio.web.TradeRequest.TradeRequestAction;
-import org.springframework.util.Assert;
 
 /**
  * @author Rob Winch
+ *
  */
-public class PortfolioService {
-	private final Map<String, Portfolio> usernameToPortfolio = new HashMap<>();
+public interface PortfolioService {
 
-	public synchronized void setPortfolio(String username, Portfolio portfolio) {
-		this.usernameToPortfolio.put(username, portfolio);
-	}
+	Portfolio findPortfolio(String username);
 
-	public synchronized Portfolio findPortfolio(String username) {
-		return this.usernameToPortfolio.get(username);
-	}
-
-	public synchronized void executeTradeRequest(TradeRequest tradeRequest, String username) {
-		Assert.notNull(username, "username is required");
-		String ticker = tradeRequest.getTicker();
-		Portfolio portfolio = findPortfolio(username);
-		PortfolioPosition portfolioPosition = portfolio.getPortfolioPosition(ticker);
-		int userShares = portfolioPosition.getShares();
-		if(tradeRequest.getAction() == TradeRequestAction.Buy) {
-			userShares += tradeRequest.getShares();
-		} else {
-			// TODO validation
-			userShares -= tradeRequest.getShares();
-		}
-		PortfolioPosition newPortfolioPosition =
-				new PortfolioPosition(portfolioPosition.getCompany(), portfolioPosition.getTicker(), portfolioPosition.getPrice(), userShares);
-		portfolio.addPosition(newPortfolioPosition);
-
-		// TODO send response to the client
-	}
+	void executeTradeRequest(TradeRequest tradeRequest, String username);
 }
