@@ -50,7 +50,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			throws Exception {
 		auth
 			.inMemoryAuthentication()
-				.withUser("user").password("password").roles("USER").and()
-				.withUser("admin").password("password").roles("ADMIN","USER");
+				.withUser("fabrice").password("fab123").roles("USER").and()
+				.withUser("paulson").password("bond").roles("ADMIN","USER");
 	}
 }

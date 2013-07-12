@@ -1,41 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Sign in &middot; Stock Trading Portfolio</title>
-<link href="assets/css/bootstrap.css" rel="stylesheet">
-<link href="assets/css/login.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <title>Sign in &middot; Stock Trading Portfolio Sign in</title>
+  <link href="assets/css/bootstrap.css" rel="stylesheet">
+  <link href="assets/css/login.css" rel="stylesheet">
 </head>
 <body>
+
   <div class="container">
     <div data-bind="visible: showErrorMessage" class="alert alert-error">
       Invalid username/password.
    	</div>
-    <div data-bind="visible: showLogoutMessage" class="alert alert-success">
-      You have successfully signed out.
-    </div>
     <form class="form-signin" method="post" action="login.html">
-      <h2 class="form-signin-heading">Please sign in</h2>
-      <input type="text" class="input-block-level"
-        placeholder="User name" name="username"> <input type="password"
-        class="input-block-level" placeholder="Password" name="password">
-      <button class="btn btn-large btn-primary" type="submit">Sign
-        in</button>
+      <h3 class="muted form-signin-heading">Please sign in</h3>
+      <input type="text" class="input-block-level" placeholder="User name" name="username">
+      <input type="password" class="input-block-level" placeholder="Password" name="password">
+      <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+      <hr>
+      <p class="text-info"><small>See <code>WebSecurityConfig.java</code> for login details</small></p>
     </form>
   </div><!-- /container -->
+
   <script src="assets/js/knockout-2.3.0.js"></script>
   <script type="text/javascript">
-				var viewModel = {
-					showErrorMessage : ko.computed(function() {
-						  var query = window.location.search;
-						  return query ? (query.indexOf('error') != -1) : false;
-					}),
-					showLogoutMessage : ko.computed(function() {
-						  var query = window.location.search;
-						  return query ? (query.indexOf('logout') != -1) : false;
-					})
-				};
-	      ko.applyBindings(viewModel);
+			var viewModel = {
+				showErrorMessage : ko.computed(function() {
+					var query = window.location.search;
+					return query ? (query.indexOf('error') != -1) : false;
+				}),
+			};
+			ko.applyBindings(viewModel);
 		</script>
+
 </body>
 </html>

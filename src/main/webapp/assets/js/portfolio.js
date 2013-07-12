@@ -1,5 +1,5 @@
 
-function PortfolioModel(client) {
+function PortfolioModel(tradeModel, userModel) {
 	var self = this;
 
 	self.portfolioRows = ko.observableArray();
@@ -35,21 +35,22 @@ function PortfolioModel(client) {
 		}
 	};
 
-	self.trade = ko.observable(new TradeAction(client));
+	self.trade = ko.observable(tradeModel);
+	self.user = ko.observable(userModel);
 };
 
-function PortfolioRow(position) {
+function PortfolioRow(data) {
 	var self = this;
 
-	self.company = position.company;
-	self.ticker = position.ticker;
-	self.price = ko.observable(position.price);
+	self.company = data.company;
+	self.ticker = data.ticker;
+	self.price = ko.observable(data.price);
 	self.formattedPrice = ko.computed(function() {
 		return "$" + self.price().toFixed(2);
 	});
 	self.change = ko.observable(0);
 	self.arrow = ko.observable();
-	self.shares = ko.observable(position.shares);
+	self.shares = ko.observable(data.shares);
 	self.value = ko.computed(function() {
 		return (self.price() * self.shares());
 	});
@@ -65,7 +66,7 @@ function PortfolioRow(position) {
 	};
 };
 
-function TradeAction(client) {
+function TradeModel(stompClient) {
 	var self = this;
 
 	self.action = ko.observable();
@@ -75,13 +76,13 @@ function TradeAction(client) {
 	self.showBuy = function(row) { 
 		self.selectedRow(row);
 		self.action('Buy');
-		$('#tradeDialog').modal();
+		$('#trade-dialog').modal();
 	};
 
 	self.showSell = function(row) { 
 		self.selectedRow(row);
 		self.action('Sell');
-		$('#tradeDialog').modal();
+		$('#trade-dialog').modal();
 	};
 
 	self.executeTrade = function() {
@@ -91,7 +92,18 @@ function TradeAction(client) {
 				"action" : self.action()
 			};
 		console.log(request);
-		client.send("/tradeRequest", {}, JSON.stringify(request));
-		$('#tradeDialog').modal('hide');
+		stompClient.send("/tradeRequest", {}, JSON.stringify(request));
+		$('#trade-dialog').modal('hide');
+	}
+}
+
+function UserModel(stompClient) {
+	var self = this;
+	  
+	self.name = ko.observable();
+	  
+	self.logout = function() {
+		stompClient.disconnect();
+		window.location.href = './logout.html';
 	}
 }

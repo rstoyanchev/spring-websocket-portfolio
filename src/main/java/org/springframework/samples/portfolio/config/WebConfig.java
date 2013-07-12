@@ -100,8 +100,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public PortfolioService portfolioService() {
 		PortfolioService portfolioService = new PortfolioService();
-		portfolioService.setPortfolio("admin", createAdminPortfolio());
-		portfolioService.setPortfolio("user", createUserPortfolio());
+		portfolioService.setPortfolio("paulson", createAdminPortfolio());
+		portfolioService.setPortfolio("fabrice", createUserPortfolio());
 		return portfolioService;
 	}
 

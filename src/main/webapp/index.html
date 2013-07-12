@@ -8,29 +8,15 @@
   </head>
   <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="#">Stock Trading Portfolio</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav pull-right">
-	          <p class="navbar-text pull-right">
-	              <span class="user">User</span> <a href="./logout.html"><i class="icon-off icon-white"></i></a></a>
-	          </p>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
-    
     <div class="container">
-      <div class="main-content">
-      
+      <div id="heading" class="masthead">
+        <div class="pull-right">
+          <span class="text-info" data-bind="text: user().name"><em></em></span>&nbsp;
+          <button data-bind="click: user().logout"><i class="icon-off icon-white"></i></button>
+        </div>
+        <h3 class="muted">Stock Trading Portfolio</h3>
+      </div>
+      <div id="main-content">
         <table id="portfolioTable" class="table table-striped">
           <thead>
             <tr>
@@ -69,63 +55,61 @@
           </tfoot>
           <tbody></tbody>
         </table>
-
-        <div id="tradeDialog" class="modal hide fade" tabindex="-1">
-          <div class="modal-body">
-            <form class="form-trade" data-bind="submit: trade().executeTrade">
-              <h2 class="form-trade-heading"><span data-bind="text: trade().action"></span>
-                <span data-bind="text: trade().selectedRow().ticker"></span> shares:</h2>
-              <input type="text" data-bind="value: trade().shares" class="input-block-level" placeholder="Shares">
-              <button class="btn" data-dismiss="modal">Close</button>
-              <button class="btn btn-primary" type="submit">
-                <span data-bind="text: trade().action"></span>
-              </button>
-            </form>
-          </div>
+      </div>
+      <div id="trade-dialog" class="modal hide fade" tabindex="-1">
+        <div class="modal-body">
+          <form class="form-trade" data-bind="submit: trade().executeTrade">
+            <h2 class="form-trade-heading"><span data-bind="text: trade().action"></span>
+              <span data-bind="text: trade().selectedRow().ticker"></span> shares:</h2>
+            <input type="text" data-bind="value: trade().shares" class="input-block-level" placeholder="Shares">
+            <button class="btn" data-dismiss="modal">Close</button>
+            <button class="btn btn-primary" type="submit">
+              <span data-bind="text: trade().action"></span>
+            </button>
+          </form>
         </div>
-
       </div>
     </div> <!-- /container -->
 
-    <!-- 3rd party -->
     <script src="assets/js/jquery-1.8.3.js"></script>
     <script src="assets/js/knockout-2.3.0.js"></script>
     <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/sockjs-0.3.4.js"></script>
     <script src="assets/js/stomp.js"></script>
+    <script src="assets/js/portfolio.js"></script>
 
-    <!-- Application -->
-    <script src="assets/js/portfolio-viewModel.js"></script>
     <script type="text/javascript">
+      $(document).ready(function() {
 
-			var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-			var client = Stomp.over(socket);
-			
-		  var model = new PortfolioModel(client);
-		  ko.applyBindings(model);
+          var socket = new SockJS('/spring-websocket-portfolio/portfolio');
+          var client = Stomp.over(socket);
 
-			var onConnect = function(frame) {
+          var portfolio = new PortfolioModel(new TradeModel(client), new UserModel(client));
+          ko.applyBindings(portfolio);
 
-				console.log('Connected ' + frame);
+          var onConnect = function(frame) {
 
-				client.subscribe("/positions", function(message) {
-					var positions = JSON.parse(message.body);
-					model.loadPositions(positions);
-				});
+            console.log('Connected ' + frame);
+            portfolio.user().name(frame.headers['user-name']);
 
-				client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
-          var quote = JSON.parse(message.body);
-          model.processQuote(quote);
-				});
-			}
+            client.subscribe("/positions", function(message) {
+            	var positions = JSON.parse(message.body);
+              portfolio.loadPositions(positions);
+            });
 
-			var onError = function(error) {
-				console.log('error ' + error);
-			}
-			
-			client.connect('guest', 'guest', onConnect, onError, '/');
-			
+            client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
+              var quote = JSON.parse(message.body);
+              portfolio.processQuote(quote);
+            });
+          }
+
+          var onError = function(error) {
+            console.log('error ' + error);
+          }
+
+          client.connect('guest', 'guest', onConnect, onError, '/');
+      });
 		</script>
-    
+
   </body>
 </html>
