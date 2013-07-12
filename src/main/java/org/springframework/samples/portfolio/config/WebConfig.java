@@ -1,26 +1,24 @@
 package org.springframework.samples.portfolio.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.channel.PublishSubscribeChannel;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.handler.AnnotationSimpMessageHandler;
+import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
+import org.springframework.messaging.support.channel.PublishSubscribeChannel;
+import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.service.PortfolioService;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.messaging.service.broker.SimpleBrokerWebMessageHandler;
-import org.springframework.web.messaging.service.method.AnnotationWebMessageHandler;
-import org.springframework.web.messaging.stomp.support.StompWebSocketHandler;
-import org.springframework.web.messaging.support.WebMessagingTemplate;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -58,16 +56,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public AnnotationWebMessageHandler annotationMessageHandler() {
-		AnnotationWebMessageHandler handler = new AnnotationWebMessageHandler(inboundChannel(), outboundChannel());
+	public AnnotationSimpMessageHandler annotationMessageHandler() {
+		AnnotationSimpMessageHandler handler = new AnnotationSimpMessageHandler(outboundChannel());
 		handler.setMessageConverter(this.messageConverter);
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 
 	@Bean
-	public SimpleBrokerWebMessageHandler simpleBrokerMessageHandler() {
-		SimpleBrokerWebMessageHandler handler = new SimpleBrokerWebMessageHandler(outboundChannel());
+	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
+		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(outboundChannel());
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
@@ -84,8 +82,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public WebMessagingTemplate messagingTemplate() {
-		WebMessagingTemplate template = new WebMessagingTemplate(inboundChannel());
+	public SimpMessagingTemplate messagingTemplate() {
+		SimpMessagingTemplate template = new SimpMessagingTemplate(inboundChannel());
 		template.setMessageConverter(this.messageConverter);
 		return template;
 	}
