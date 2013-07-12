@@ -69,6 +69,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public SubscribableChannel inboundChannel() {
+		// TODO: executor
 		return new PublishSubscribeChannel();
 	}
 
