@@ -11,7 +11,7 @@
   <div class="container">
     <div data-bind="visible: showErrorMessage" class="alert alert-error">
       Invalid username/password.
-   	</div>
+    </div>
     <form class="form-signin" method="post" action="login.html">
       <h3 class="muted form-signin-heading">Please sign in</h3>
       <input type="text" class="input-block-level" placeholder="User name" name="username">
@@ -25,13 +25,13 @@
   <script src="assets/js/knockout-2.3.0.js"></script>
 
   <script type="text/javascript">
-		ko.applyBindings({
-			showErrorMessage : ko.computed(function() {
-				var query = window.location.search;
-				return query ? (query.indexOf('error') != -1) : false;
-			}),
-		});
-	</script>
+    ko.applyBindings({
+      showErrorMessage : ko.computed(function() {
+        var query = window.location.search;
+        return query ? (query.indexOf('error') != -1) : false;
+      }),
+    });
+  </script>
 
 </body>
 </html>

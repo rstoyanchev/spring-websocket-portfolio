@@ -81,35 +81,35 @@
     <script type="text/javascript">
       $(document).ready(function() {
 
-          var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-          var client = Stomp.over(socket);
+        var socket = new SockJS('/spring-websocket-portfolio/portfolio');
+        var client = Stomp.over(socket);
 
-          var portfolio = new PortfolioModel(new TradeModel(client), new UserModel(client));
-          ko.applyBindings(portfolio);
+        var portfolio = new PortfolioModel(new TradeModel(client), new UserModel(client));
+        ko.applyBindings(portfolio);
 
-          var onConnect = function(frame) {
+        var onConnect = function(frame) {
 
-            console.log('Connected ' + frame);
-            portfolio.user().name(frame.headers['user-name']);
+          console.log('Connected ' + frame);
+          portfolio.user().name(frame.headers['user-name']);
 
-            client.subscribe("/positions", function(message) {
-            	var positions = JSON.parse(message.body);
-              portfolio.loadPositions(positions);
-            });
+          client.subscribe("/positions", function(message) {
+            var positions = JSON.parse(message.body);
+            portfolio.loadPositions(positions);
+          });
 
-            client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
-              var quote = JSON.parse(message.body);
-              portfolio.processQuote(quote);
-            });
-          }
+          client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
+            var quote = JSON.parse(message.body);
+            portfolio.processQuote(quote);
+          });
+        }
 
-          var onError = function(error) {
-            console.log('error ' + error);
-          }
+        var onError = function(error) {
+          console.log('error ' + error);
+        }
 
-          client.connect('guest', 'guest', onConnect, onError, '/');
+        client.connect('guest', 'guest', onConnect, onError, '/');
       });
-		</script>
+    </script>
 
   </body>
 </html>
