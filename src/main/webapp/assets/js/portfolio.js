@@ -73,17 +73,21 @@ function TradeModel(stompClient) {
 	self.selectedRow = ko.observable({});
 	self.shares = ko.observable(0);
 
-	self.showBuy = function(row) { 
-		self.selectedRow(row);
-		self.action('Buy');
-		$('#trade-dialog').modal();
-	};
+	self.showBuy  = function(row) { self.showModal(row, 'Buy') }
+	self.showSell = function(row) { self.showModal(row, 'Sell') }
 
-	self.showSell = function(row) { 
+	self.showModal = function(row, action) {
 		self.selectedRow(row);
-		self.action('Sell');
+		self.action(action);
+		self.shares(0);
 		$('#trade-dialog').modal();
-	};
+	}
+
+	$('#trade-dialog').on('shown', function () {
+		var input = $('#trade-dialog input');
+		input.focus();
+		input.select();
+	})
 
 	self.executeTrade = function() {
 		var request = {

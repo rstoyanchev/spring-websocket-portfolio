@@ -23,15 +23,15 @@
   </div><!-- /container -->
 
   <script src="assets/js/knockout-2.3.0.js"></script>
+
   <script type="text/javascript">
-			var viewModel = {
-				showErrorMessage : ko.computed(function() {
-					var query = window.location.search;
-					return query ? (query.indexOf('error') != -1) : false;
-				}),
-			};
-			ko.applyBindings(viewModel);
-		</script>
+		ko.applyBindings({
+			showErrorMessage : ko.computed(function() {
+				var query = window.location.search;
+				return query ? (query.indexOf('error') != -1) : false;
+			}),
+		});
+	</script>
 
 </body>
 </html>
