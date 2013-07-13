@@ -97,7 +97,7 @@
             portfolio.loadPositions(positions);
           });
 
-          client.subscribe("/topic/PRICE.STOCK.NASDAQ.*", function(message) {
+          client.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
             var quote = JSON.parse(message.body);
             portfolio.processQuote(quote);
           });

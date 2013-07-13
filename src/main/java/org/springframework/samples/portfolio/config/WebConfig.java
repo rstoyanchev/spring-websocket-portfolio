@@ -10,10 +10,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationSimpMessageHandler;
 import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
-import org.springframework.messaging.support.channel.PublishSubscribeChannel;
+import org.springframework.messaging.support.channel.TaskExecutorSubscribableChannel;
 import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
@@ -67,16 +68,15 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return handler;
 	}
 
+	/*
 	@Bean
-	public SubscribableChannel inboundChannel() {
-		// TODO: executor
-		return new PublishSubscribeChannel();
+	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
+		List<String> destinations = Arrays.asList("/exchange", "/topic", "/queue");
+		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(outboundChannel(), destinations);
+		inboundChannel().subscribe(handler);
+		return handler;
 	}
-
-	@Bean
-	public SubscribableChannel outboundChannel() {
-		return new PublishSubscribeChannel();
-	}
+	*/
 
 	@Bean
 	public SimpMessagingTemplate messagingTemplate() {
@@ -85,6 +85,24 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return template;
 	}
 
+	@Bean
+	public SubscribableChannel inboundChannel() {
+		return new TaskExecutorSubscribableChannel(asyncExecutor());
+	}
+
+	@Bean
+	public SubscribableChannel outboundChannel() {
+		return new TaskExecutorSubscribableChannel(asyncExecutor());
+	}
+
+	@Bean
+	public ThreadPoolTaskExecutor asyncExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(4);
+		executor.setCorePoolSize(8);
+		executor.setThreadNamePrefix("MessageChannel-");
+		return executor;
+	}
 
 	@Bean
 	public ThreadPoolTaskScheduler taskScheduler() {
