@@ -25,11 +25,12 @@ public class StockService {
 
 	@Scheduled(fixedDelay=2000)
 	public void sendQuotes() {
-		Quote quote = this.quoteGenerator.nextQuote();
-		if (logger.isTraceEnabled()) {
-			logger.trace("Sending quote " + quote);
+		for (Quote quote : this.quoteGenerator.generateQuotes()) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Sending quote " + quote);
+			}
+			this.messagingTemplate.convertAndSend("/topic/stocks.PRICE.STOCK.NASDAQ." + quote.getTicker(), quote);
 		}
-		this.messagingTemplate.convertAndSend("/topic/stocks.PRICE.STOCK.NASDAQ." + quote.getTicker(), quote);
 	}
 
 }

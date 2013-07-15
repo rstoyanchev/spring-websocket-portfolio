@@ -2,12 +2,10 @@ package org.springframework.samples.portfolio.service;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -17,55 +15,34 @@ public class StockQuoteGenerator {
 
 	private final Random random = new Random();
 
-	private final Map<String, String> quotes = new ConcurrentHashMap<String, String>();
-
-	private final List<String> tickers;
-
-	private Iterator<String> tickersIterator;
+	private final Map<String, String> prices = new ConcurrentHashMap<>();
 
 
 	public StockQuoteGenerator() {
-
-		this.quotes.put("CTXS", "24.30");
-		this.quotes.put("DELL", "13.03");
-		this.quotes.put("EMC", "24.13");
-		this.quotes.put("GOOG", "893.49");
-		this.quotes.put("MSFT", "34.21");
-		this.quotes.put("ORCL", "31.22");
-		this.quotes.put("RHT", "48.30");
-		this.quotes.put("VMW", "66.98");
-
-		this.tickers = new ArrayList<String>(this.quotes.keySet());
-		this.tickersIterator = this.tickers.iterator();
+		this.prices.put("CTXS", "24.30");
+		this.prices.put("DELL", "13.03");
+		this.prices.put("EMC", "24.13");
+		this.prices.put("GOOG", "893.49");
+		this.prices.put("MSFT", "34.21");
+		this.prices.put("ORCL", "31.22");
+		this.prices.put("RHT", "48.30");
+		this.prices.put("VMW", "66.98");
 	}
 
-	public Quote nextQuote() {
-		if (!this.tickersIterator.hasNext()) {
-			Collections.shuffle(this.tickers);
-			this.tickersIterator = this.tickers.iterator();
+	public Set<Quote> generateQuotes() {
+		Set<Quote> quotes = new HashSet<>();
+		for (String ticker : this.prices.keySet()) {
+			BigDecimal price = getPrice(ticker);
+			quotes.add(new Quote(ticker, price));
 		}
-		String ticker = this.tickersIterator.next();
-		BigDecimal price = getPrice(ticker);
-		return new Quote(ticker, price);
+		return quotes;
 	}
 
 	private BigDecimal getPrice(String ticker) {
-		BigDecimal seedPrice = new BigDecimal(this.quotes.get(ticker), mathContext);
+		BigDecimal seedPrice = new BigDecimal(this.prices.get(ticker), mathContext);
 		double range = seedPrice.multiply(new BigDecimal(0.02)).doubleValue();
 		BigDecimal priceChange = new BigDecimal(String.valueOf(this.random.nextDouble() * range), mathContext);
 		return seedPrice.add(priceChange);
-	}
-
-
-	public static void main(String[] args) {
-		StockQuoteGenerator gen = new StockQuoteGenerator();
-		for (int i=0 ; i < gen.quotes.size(); i++) {
-			System.out.println(gen.nextQuote());
-		}
-		System.out.println("");
-		for (int i=0 ; i < gen.quotes.size(); i++) {
-			System.out.println(gen.nextQuote());
-		}
 	}
 
 }

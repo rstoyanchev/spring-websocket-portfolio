@@ -79,7 +79,7 @@ public class InMemoryPortfolioService implements PortfolioService {
 		PortfolioPosition newPosition = new PortfolioPosition(position, shares);
 		portfolio.addPosition(newPosition);
 
-		this.messagingTemplate.convertAndSend("/user/" + username + "/queue/trade-confirmation", newPosition);
+		this.messagingTemplate.convertAndSend("/user/" + username + "/queue/position-updates", newPosition);
 	}
 
 }

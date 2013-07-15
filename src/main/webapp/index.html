@@ -60,8 +60,11 @@
         <div class="modal-body">
           <form class="form-trade" data-bind="submit: trade().executeTrade">
             <h2 class="form-trade-heading"><span data-bind="text: trade().action"></span>
-              <span data-bind="text: trade().selectedRow().ticker"></span> shares:</h2>
-            <input type="text" data-bind="value: trade().shares" class="input-block-level" placeholder="Shares">
+              <span data-bind="text: trade().currentRow().ticker"></span> shares:</h2>
+            <div class="alert alert-error" data-bind="visible: trade().error().length > 0">
+              <p data-bind="text: trade().error"></p>
+            </div>
+            <input type="text" data-bind="value: trade().sharesToTrade" class="input-block-level" placeholder="Shares">
             <button class="btn" data-dismiss="modal">Close</button>
             <button class="btn btn-primary" type="submit">
               <span data-bind="text: trade().action"></span>
@@ -71,14 +74,14 @@
       </div>
     </div> <!-- /container -->
 
-    // 3rd party
-    <script src="assets/js/bootstrap.js"></script>
+    <!-- 3rd party -->
     <script src="assets/js/jquery-1.8.3.js"></script>
+    <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/knockout-2.3.0.js"></script>
     <script src="assets/js/sockjs-0.3.4.js"></script>
     <script src="assets/js/stomp.js"></script>
 
-    // application
+    <!-- application -->
     <script src="assets/js/portfolio.js"></script>
     <script type="text/javascript">
       (function() {

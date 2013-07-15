@@ -9,26 +9,28 @@ function ApplicationModel(stompClient) {
   self.connect = function() {
     stompClient.connect('', '', function(frame) {
 
-        console.log('Connected ' + frame);
-        var userName = frame.headers['user-name'];
-        var queueSuffix = frame.headers['queue-suffix'];
+      console.log('Connected ' + frame);
+      var userName = frame.headers['user-name'];
+      var queueSuffix = frame.headers['queue-suffix'];
 
-        self.username(userName);
+      self.username(userName);
 
-        stompClient.subscribe("/positions", function(message) {
-          self.portfolio().loadPositions(JSON.parse(message.body));
-        });
-        stompClient.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
-          self.portfolio().processQuote(JSON.parse(message.body));
-        });
-        stompClient.subscribe("/queue/trade-confirmation/" + queueSuffix, function(message) {
-          console.log("Trade result" + message.body);
-        });
-      }, function(error) {
-        console.log('error ' + error);
+      stompClient.subscribe("/positions", function(message) {
+        // console.log("Positions " + message.body);
+        self.portfolio().loadPositions(JSON.parse(message.body));
       });
+      stompClient.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
+        // console.log("Quote " + message.body);
+        self.portfolio().processQuote(JSON.parse(message.body));
+      });
+      stompClient.subscribe("/queue/position-updates/" + queueSuffix, function(message) {
+        console.log("Position update " + message.body);
+        self.portfolio().updatePosition(JSON.parse(message.body));
+      });
+    }, function(error) {
+      console.log('error ' + error);
+    });
   }
-
 
   self.logout = function() {
     stompClient.disconnect();
@@ -40,7 +42,6 @@ function PortfolioModel() {
   var self = this;
 
   self.rows = ko.observableArray();
-  self.rowLookup = {};
 
   self.totalShares = ko.computed(function() {
     var result = 0;
@@ -58,18 +59,24 @@ function PortfolioModel() {
     return "$" + result.toFixed(2);
   });
 
+  var rowLookup = {};
+
   self.loadPositions = function(positions) {
     for ( var i = 0; i < positions.length; i++) {
       var row = new PortfolioRow(positions[i]);
       self.rows.push(row);
-      self.rowLookup[row.ticker] = row;
+      rowLookup[row.ticker] = row;
     }
   };
 
   self.processQuote = function(quote) {
-    if (self.rowLookup.hasOwnProperty(quote.ticker)) {
-      self.rowLookup[quote.ticker].updatePrice(quote.price);
+    if (rowLookup.hasOwnProperty(quote.ticker)) {
+      rowLookup[quote.ticker].updatePrice(quote.price);
     }
+  };
+
+  self.updatePosition = function(position) {
+    rowLookup[position.ticker].shares(position.shares);
   };
 };
 
@@ -98,16 +105,18 @@ function TradeModel(stompClient) {
   var self = this;
 
   self.action = ko.observable();
-  self.selectedRow = ko.observable({});
-  self.shares = ko.observable(0);
+  self.sharesToTrade = ko.observable(0);
+  self.currentRow = ko.observable({});
+  self.error = ko.observable('');
 
-  self.showBuy  = function(row) { self.showModal(row, 'Buy') }
-  self.showSell = function(row) { self.showModal(row, 'Sell') }
+  self.showBuy  = function(row) { self.showModal('Buy', row) }
+  self.showSell = function(row) { self.showModal('Sell', row) }
 
-  self.showModal = function(row, action) {
-    self.selectedRow(row);
+  self.showModal = function(action, row) {
     self.action(action);
-    self.shares(0);
+    self.sharesToTrade(0);
+    self.currentRow(row);
+    self.error('');
     $('#trade-dialog').modal();
   }
 
@@ -118,10 +127,14 @@ function TradeModel(stompClient) {
   })
 
   self.executeTrade = function() {
+	if ((self.action() === 'Sell') && (self.sharesToTrade() > self.currentRow().shares())) {
+		self.error('Not enough shares to sell (' + self.currentRow().shares() + ' available)');
+		return;
+	}
     var trade = {
         "action" : self.action(),
-        "ticker" : self.selectedRow().ticker,
-        "shares" : self.shares()
+        "ticker" : self.currentRow().ticker,
+        "shares" : self.sharesToTrade()
       };
     console.log(trade);
     stompClient.send("/trade", {}, JSON.stringify(trade));
