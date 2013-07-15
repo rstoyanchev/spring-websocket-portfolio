@@ -1,14 +1,18 @@
 package org.springframework.samples.portfolio.config;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.handler.AnnotationSimpMessageHandler;
-import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
+import org.springframework.messaging.simp.handler.InMemoryUserSessionResolver;
+import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
+import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
 import org.springframework.messaging.support.channel.TaskExecutorSubscribableChannel;
 import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
@@ -49,34 +53,48 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public StompWebSocketHandler stompWebSocketHandler() {
 		StompWebSocketHandler handler = new StompWebSocketHandler(inboundChannel());
+		handler.setUserSessionResolver(userSessionResolver());
 		outboundChannel().subscribe(handler);
 		return handler;
 	}
 
 	@Bean
-	public AnnotationSimpMessageHandler annotationMessageHandler() {
-		AnnotationSimpMessageHandler handler = new AnnotationSimpMessageHandler(outboundChannel());
+	public InMemoryUserSessionResolver userSessionResolver() {
+		return new InMemoryUserSessionResolver();
+	}
+
+	@Bean
+	public AnnotationMethodMessageHandler annotationMessageHandler() {
+		AnnotationMethodMessageHandler handler = new AnnotationMethodMessageHandler(outboundChannel());
 		handler.setMessageConverter(this.messageConverter);
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 
 	@Bean
-	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
-		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(outboundChannel());
+	public UserDestinationMessageHandler userMessageHandler() {
+		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(messagingTemplate());
+		handler.setUserSessionResolver(userSessionResolver());
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 
 	/*
 	@Bean
-	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
-		List<String> destinations = Arrays.asList("/exchange", "/topic", "/queue");
-		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(outboundChannel(), destinations);
+	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
+		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(outboundChannel());
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 	*/
+
+	@Bean
+	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
+		List<String> destinations = Arrays.asList("/topic", "/queue");
+		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(outboundChannel(), destinations);
+		inboundChannel().subscribe(handler);
+		return handler;
+	}
 
 	@Bean
 	public SimpMessagingTemplate messagingTemplate() {

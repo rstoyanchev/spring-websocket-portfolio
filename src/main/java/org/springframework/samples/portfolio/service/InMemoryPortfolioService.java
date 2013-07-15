@@ -18,6 +18,8 @@ package org.springframework.samples.portfolio.service;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.web.TradeRequest;
@@ -31,10 +33,15 @@ import org.springframework.util.Assert;
 @Service
 public class InMemoryPortfolioService implements PortfolioService {
 
+	private final MessageSendingOperations<String> messagingTemplate;
+
 	private final Map<String, Portfolio> usernameToPortfolio = new HashMap<>();
 
 
-	public InMemoryPortfolioService() {
+	@Autowired
+	public InMemoryPortfolioService(MessageSendingOperations<String> messagingTemplate) {
+
+		this.messagingTemplate = messagingTemplate;
 
 		Portfolio portfolio = new Portfolio();
 		portfolio.addPosition(new PortfolioPosition("Citrix Systems, Inc.", "CTXS", 24.30, 75));
@@ -57,21 +64,22 @@ public class InMemoryPortfolioService implements PortfolioService {
 	@Override
 	public void executeTradeRequest(TradeRequest tradeRequest, String username) {
 		Assert.notNull(username, "username is required");
-		String ticker = tradeRequest.getTicker();
-		Portfolio portfolio = findPortfolio(username);
-		PortfolioPosition portfolioPosition = portfolio.getPortfolioPosition(ticker);
-		int userShares = portfolioPosition.getShares();
-		if(tradeRequest.getAction() == TradeRequestAction.Buy) {
-			userShares += tradeRequest.getShares();
-		} else {
-			// TODO validation
-			userShares -= tradeRequest.getShares();
-		}
-		PortfolioPosition newPortfolioPosition =
-				new PortfolioPosition(portfolioPosition.getCompany(), portfolioPosition.getTicker(), portfolioPosition.getPrice(), userShares);
-		portfolio.addPosition(newPortfolioPosition);
 
-		// TODO send response to the client
+		Portfolio portfolio = findPortfolio(username);
+		PortfolioPosition position = portfolio.getPortfolioPosition(tradeRequest.getTicker());
+		int shares = position.getShares();
+
+		if(tradeRequest.getAction() == TradeRequestAction.Buy) {
+			shares += tradeRequest.getShares();
+		}
+		else {
+			// TODO validation
+			shares -= tradeRequest.getShares();
+		}
+		PortfolioPosition newPosition = new PortfolioPosition(position, shares);
+		portfolio.addPosition(newPosition);
+
+		this.messagingTemplate.convertAndSend("/user/" + username + "/queue/trade-result", newPosition);
 	}
 
 }

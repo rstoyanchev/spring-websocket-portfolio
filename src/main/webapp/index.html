@@ -90,7 +90,11 @@
         var onConnect = function(frame) {
 
           console.log('Connected ' + frame);
-          portfolio.user().name(frame.headers['user-name']);
+
+          var userName = frame.headers['user-name'];
+          var queueSuffix = frame.headers['queue-suffix'];
+          
+          portfolio.user().name(userName);
 
           client.subscribe("/positions", function(message) {
             var positions = JSON.parse(message.body);
@@ -100,6 +104,10 @@
           client.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
             var quote = JSON.parse(message.body);
             portfolio.processQuote(quote);
+          });
+
+          client.subscribe("/queue/trade-result/" + queueSuffix, function(message) {
+        	  console.log("Trade result" + message.body);
           });
         }
 

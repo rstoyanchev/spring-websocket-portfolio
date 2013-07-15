@@ -18,6 +18,13 @@ public class PortfolioPosition {
 		this.shares = shares;
 	}
 
+	public PortfolioPosition(PortfolioPosition other, int shares) {
+		this.company = other.company;
+		this.ticker = other.ticker;
+		this.price = other.price;
+		this.shares = shares;
+	}
+
 	public String getCompany() {
 		return this.company;
 	}
