@@ -11,8 +11,8 @@
     <div class="container">
       <div id="heading" class="masthead">
         <div class="pull-right">
-          <span class="text-info" data-bind="text: user().name"><em></em></span>&nbsp;
-          <button data-bind="click: user().logout"><i class="icon-off"></i></button>
+          <span class="text-info" data-bind="text: username"><em></em></span>&nbsp;
+          <button data-bind="click: logout"><i class="icon-off"></i></button>
         </div>
         <h3 class="muted">Stock Trading Portfolio</h3>
       </div>
@@ -30,7 +30,7 @@
               <th></th>
             </tr>
           </thead>
-          <tbody data-bind="foreach: portfolioRows">
+          <tbody data-bind="foreach: portfolio().rows">
             <tr>
               <td data-bind="text: company"></td>
               <td data-bind="text: ticker"></td>
@@ -40,16 +40,16 @@
               <td data-bind="text: shares" class="number"></td>
               <td data-bind="text: formattedValue" class="number"></td>
               <td class="trade-buttons">
-                <button class="btn btn-primary" data-bind="click: $parent.trade().showBuy">Buy</button>
-                <button class="btn btn-primary" data-bind="click: $parent.trade().showSell">Sell</button>
+                <button class="btn btn-primary" data-bind="click: $root.trade().showBuy">Buy</button>
+                <button class="btn btn-primary" data-bind="click: $root.trade().showSell">Sell</button>
               </td>
              </tr>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="5">Total value:</td>
-              <td data-bind="text: totalShares" class="number"></td>
-              <td data-bind="text: totalValue" class="number"></td>
+              <td data-bind="text: portfolio().totalShares" class="number"></td>
+              <td data-bind="text: portfolio().totalValue" class="number"></td>
               <td></td>
             </tr>
           </tfoot>
@@ -71,53 +71,25 @@
       </div>
     </div> <!-- /container -->
 
+    // 3rd party
+    <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/jquery-1.8.3.js"></script>
     <script src="assets/js/knockout-2.3.0.js"></script>
-    <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/sockjs-0.3.4.js"></script>
     <script src="assets/js/stomp.js"></script>
 
+    // application
     <script src="assets/js/portfolio.js"></script>
-
     <script type="text/javascript">
-      $(document).ready(function() {
-
+      (function() {
         var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-        var client = Stomp.over(socket);
+        var stompClient = Stomp.over(socket);
 
-        var trade = new TradeModel(client);
-        var user = new UserModel(client);
-        var portfolio = new PortfolioModel(trade, user);
-        ko.applyBindings(portfolio);
+        var applicationModel = new ApplicationModel(stompClient);
+        ko.applyBindings(applicationModel);
 
-        var onConnect = function(frame) {
-
-          console.log('Connected ' + frame);
-
-          var userName = frame.headers['user-name'];
-          var queueSuffix = frame.headers['queue-suffix'];
-          
-          portfolio.user().name(userName);
-
-          client.subscribe("/positions", function(message) {
-            var positions = JSON.parse(message.body);
-            portfolio.loadPositions(positions);
-          });
-          client.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
-            var quote = JSON.parse(message.body);
-            portfolio.processQuote(quote);
-          });
-          client.subscribe("/queue/trade-confirmation/" + queueSuffix, function(message) {
-        	  console.log("Trade result" + message.body);
-          });
-        }
-
-        var onError = function(error) {
-          console.log('error ' + error);
-        }
-
-        client.connect('guest', 'guest', onConnect, onError, '/');
-      });
+        applicationModel.connect();
+      })();
     </script>
 
   </body>

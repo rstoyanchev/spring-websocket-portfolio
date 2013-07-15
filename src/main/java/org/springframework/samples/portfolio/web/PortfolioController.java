@@ -45,9 +45,10 @@ public class PortfolioController {
 		return Arrays.asList(portfolio.getPositions());
 	}
 
-	@MessageMapping("/tradeRequest")
+	@MessageMapping("/trade")
 	public void executeTrade(TradeRequest tradeRequest, Principal principal) {
-		logger.debug("TradeRequest: " + tradeRequest);
+		logger.debug("Trade: " + tradeRequest);
 		this.portfolioService.executeTradeRequest(tradeRequest, principal.getName());
 	}
+
 }

@@ -1,22 +1,59 @@
 
-function PortfolioModel(tradeModel, userModel) {
+function ApplicationModel(stompClient) {
   var self = this;
 
-  self.portfolioRows = ko.observableArray();
+  self.username = ko.observable();
+  self.portfolio = ko.observable(new PortfolioModel());
+  self.trade = ko.observable(new TradeModel(stompClient));
+
+  self.connect = function() {
+    stompClient.connect('', '', function(frame) {
+
+        console.log('Connected ' + frame);
+        var userName = frame.headers['user-name'];
+        var queueSuffix = frame.headers['queue-suffix'];
+
+        self.username(userName);
+
+        stompClient.subscribe("/positions", function(message) {
+          self.portfolio().loadPositions(JSON.parse(message.body));
+        });
+        stompClient.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
+          self.portfolio().processQuote(JSON.parse(message.body));
+        });
+        stompClient.subscribe("/queue/trade-confirmation/" + queueSuffix, function(message) {
+          console.log("Trade result" + message.body);
+        });
+      }, function(error) {
+        console.log('error ' + error);
+      });
+  }
+
+
+  self.logout = function() {
+    stompClient.disconnect();
+    window.location.href = './logout.html';
+  }
+}
+
+function PortfolioModel() {
+  var self = this;
+
+  self.rows = ko.observableArray();
   self.rowLookup = {};
 
   self.totalShares = ko.computed(function() {
     var result = 0;
-    for ( var i = 0; i < self.portfolioRows().length; i++) {
-      result += self.portfolioRows()[i].shares();
+    for ( var i = 0; i < self.rows().length; i++) {
+      result += self.rows()[i].shares();
     }
     return result;
   });
 
   self.totalValue = ko.computed(function() {
     var result = 0;
-    for ( var i = 0; i < self.portfolioRows().length; i++) {
-      result += self.portfolioRows()[i].value();
+    for ( var i = 0; i < self.rows().length; i++) {
+      result += self.rows()[i].value();
     }
     return "$" + result.toFixed(2);
   });
@@ -24,7 +61,7 @@ function PortfolioModel(tradeModel, userModel) {
   self.loadPositions = function(positions) {
     for ( var i = 0; i < positions.length; i++) {
       var row = new PortfolioRow(positions[i]);
-      self.portfolioRows.push(row);
+      self.rows.push(row);
       self.rowLookup[row.ticker] = row;
     }
   };
@@ -34,9 +71,6 @@ function PortfolioModel(tradeModel, userModel) {
       self.rowLookup[quote.ticker].updatePrice(quote.price);
     }
   };
-
-  self.trade = ko.observable(tradeModel);
-  self.user = ko.observable(userModel);
 };
 
 function PortfolioRow(data) {
@@ -84,24 +118,13 @@ function TradeModel(stompClient) {
   })
 
   self.executeTrade = function() {
-    var request = {
+    var trade = {
+        "action" : self.action(),
         "ticker" : self.selectedRow().ticker,
-        "shares" : self.shares(),
-        "action" : self.action()
+        "shares" : self.shares()
       };
-    console.log(request);
-    stompClient.send("/tradeRequest", {}, JSON.stringify(request));
+    console.log(trade);
+    stompClient.send("/trade", {}, JSON.stringify(trade));
     $('#trade-dialog').modal('hide');
-  }
-}
-
-function UserModel(stompClient) {
-  var self = this;
-
-  self.name = ko.observable();
-
-  self.logout = function() {
-    stompClient.disconnect();
-    window.location.href = './logout.html';
   }
 }
