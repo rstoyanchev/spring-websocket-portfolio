@@ -76,6 +76,7 @@
     <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/sockjs-0.3.4.js"></script>
     <script src="assets/js/stomp.js"></script>
+
     <script src="assets/js/portfolio.js"></script>
 
     <script type="text/javascript">
@@ -84,7 +85,9 @@
         var socket = new SockJS('/spring-websocket-portfolio/portfolio');
         var client = Stomp.over(socket);
 
-        var portfolio = new PortfolioModel(new TradeModel(client), new UserModel(client));
+        var trade = new TradeModel(client);
+        var user = new UserModel(client);
+        var portfolio = new PortfolioModel(trade, user);
         ko.applyBindings(portfolio);
 
         var onConnect = function(frame) {
@@ -100,13 +103,11 @@
             var positions = JSON.parse(message.body);
             portfolio.loadPositions(positions);
           });
-
           client.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
             var quote = JSON.parse(message.body);
             portfolio.processQuote(quote);
           });
-
-          client.subscribe("/queue/trade-result/" + queueSuffix, function(message) {
+          client.subscribe("/queue/trade-confirmation/" + queueSuffix, function(message) {
         	  console.log("Trade result" + message.body);
           });
         }

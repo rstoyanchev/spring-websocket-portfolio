@@ -3,7 +3,7 @@ function PortfolioModel(tradeModel, userModel) {
   var self = this;
 
   self.portfolioRows = ko.observableArray();
-  self.lookup = {};
+  self.rowLookup = {};
 
   self.totalShares = ko.computed(function() {
     var result = 0;
@@ -25,13 +25,13 @@ function PortfolioModel(tradeModel, userModel) {
     for ( var i = 0; i < positions.length; i++) {
       var row = new PortfolioRow(positions[i]);
       self.portfolioRows.push(row);
-      self.lookup[row.ticker] = row;
+      self.rowLookup[row.ticker] = row;
     }
   };
 
   self.processQuote = function(quote) {
-    if (self.lookup.hasOwnProperty(quote.ticker)) {
-      self.lookup[quote.ticker].updatePrice(quote.price);
+    if (self.rowLookup.hasOwnProperty(quote.ticker)) {
+      self.rowLookup[quote.ticker].updatePrice(quote.price);
     }
   };
 
@@ -45,18 +45,12 @@ function PortfolioRow(data) {
   self.company = data.company;
   self.ticker = data.ticker;
   self.price = ko.observable(data.price);
-  self.formattedPrice = ko.computed(function() {
-    return "$" + self.price().toFixed(2);
-  });
+  self.formattedPrice = ko.computed(function() { return "$" + self.price().toFixed(2); });
   self.change = ko.observable(0);
   self.arrow = ko.observable();
   self.shares = ko.observable(data.shares);
-  self.value = ko.computed(function() {
-    return (self.price() * self.shares());
-  });
-  self.formattedValue = ko.computed(function() {
-    return "$" + self.value().toFixed(2);
-  });
+  self.value = ko.computed(function() { return (self.price() * self.shares()); });
+  self.formattedValue = ko.computed(function() { return "$" + self.value().toFixed(2); });
 
   self.updatePrice = function(newPrice) {
     var delta = (newPrice - self.price()).toFixed(2);
