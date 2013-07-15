@@ -47,8 +47,8 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
-//		servletContext.setInitParameter("spring.profiles.active", "simple-broker");
-		servletContext.setInitParameter("spring.profiles.active", "stomp-broker-relay");
+		servletContext.setInitParameter("spring.profiles.active", "simple-broker");
+//		servletContext.setInitParameter("spring.profiles.active", "stomp-broker-relay");
 		super.onStartup(servletContext);
 	}
 
