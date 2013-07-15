@@ -16,6 +16,8 @@
 
 package org.springframework.samples.portfolio.config;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration.Dynamic;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -41,6 +43,13 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 	@Override
 	protected void customizeRegistration(Dynamic registration) {
 		registration.setInitParameter("dispatchOptionsRequest", "true");
+	}
+
+	@Override
+	public void onStartup(ServletContext servletContext) throws ServletException {
+//		servletContext.setInitParameter("spring.profiles.active", "simple-broker");
+		servletContext.setInitParameter("spring.profiles.active", "stomp-broker-relay");
+		super.onStartup(servletContext);
 	}
 
 }

@@ -1,16 +1,20 @@
 package org.springframework.samples.portfolio.config;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
 import org.springframework.messaging.simp.handler.InMemoryUserSessionResolver;
 import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
+import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
 import org.springframework.messaging.support.channel.TaskExecutorSubscribableChannel;
 import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
@@ -78,21 +82,21 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
+	@Profile("simple-broker")
 	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
 		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(outboundChannel());
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 
-	/*
 	@Bean
+	@Profile("stomp-broker-relay")
 	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
 		List<String> destinations = Arrays.asList("/topic", "/queue");
 		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(outboundChannel(), destinations);
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
-	*/
 
 	@Bean
 	public SimpMessagingTemplate messagingTemplate() {

@@ -23,7 +23,7 @@ function ApplicationModel(stompClient) {
         // console.log("Quote " + message.body);
         self.portfolio().processQuote(JSON.parse(message.body));
       });
-      stompClient.subscribe("/queue/position-updates/" + queueSuffix, function(message) {
+      stompClient.subscribe("/queue/position-updates" + queueSuffix, function(message) {
         console.log("Position update " + message.body);
         self.portfolio().updatePosition(JSON.parse(message.body));
       });
