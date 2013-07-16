@@ -65,6 +65,9 @@
               <p data-bind="text: trade().error"></p>
             </div>
             <input type="text" data-bind="value: trade().sharesToTrade" class="input-block-level" placeholder="Shares">
+            <label class="checkbox">
+              <input type="checkbox" data-bind="checked: trade().suppressError">
+                Allow invalid input (e.g. sell more than available)</label>
             <button class="btn" data-dismiss="modal">Close</button>
             <button class="btn btn-primary" type="submit">
               <span data-bind="text: trade().action"></span>

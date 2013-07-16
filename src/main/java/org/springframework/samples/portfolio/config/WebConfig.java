@@ -9,10 +9,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
-import org.springframework.messaging.simp.handler.InMemoryUserSessionResolver;
 import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
+import org.springframework.messaging.simp.handler.SimpleUserSessionResolver;
 import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
@@ -61,13 +62,13 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public InMemoryUserSessionResolver userSessionResolver() {
-		return new InMemoryUserSessionResolver();
+	public SimpleUserSessionResolver userSessionResolver() {
+		return new SimpleUserSessionResolver();
 	}
 
 	@Bean
 	public AnnotationMethodMessageHandler annotationMessageHandler() {
-		AnnotationMethodMessageHandler handler = new AnnotationMethodMessageHandler(outboundChannel());
+		AnnotationMethodMessageHandler handler = new AnnotationMethodMessageHandler(inboundChannel(), outboundChannel());
 		handler.setMessageConverter(this.messageConverter);
 		inboundChannel().subscribe(handler);
 		return handler;
@@ -99,7 +100,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public SimpMessagingTemplate messagingTemplate() {
+	public MessageSendingOperations<String> messagingTemplate() {
 		SimpMessagingTemplate template = new SimpMessagingTemplate(inboundChannel());
 		template.setMessageConverter(this.messageConverter);
 		return template;

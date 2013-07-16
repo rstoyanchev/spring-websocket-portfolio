@@ -27,6 +27,12 @@ function ApplicationModel(stompClient) {
         console.log("Position update " + message.body);
         self.portfolio().updatePosition(JSON.parse(message.body));
       });
+      stompClient.subscribe("/queue/rejected-trades" + queueSuffix, function(message) {
+        console.log("Rejected trade " + message.body);
+      });
+      stompClient.subscribe("/queue/error" + queueSuffix, function(message) {
+        console.log("Error message " + message.body);
+      });
     }, function(error) {
       console.log('error ' + error);
     });
@@ -108,6 +114,7 @@ function TradeModel(stompClient) {
   self.sharesToTrade = ko.observable(0);
   self.currentRow = ko.observable({});
   self.error = ko.observable('');
+  self.suppressError = ko.observable(false);
 
   self.showBuy  = function(row) { self.showModal('Buy', row) }
   self.showSell = function(row) { self.showModal('Sell', row) }
@@ -117,6 +124,7 @@ function TradeModel(stompClient) {
     self.sharesToTrade(0);
     self.currentRow(row);
     self.error('');
+    self.suppressError(false);
     $('#trade-dialog').modal();
   }
 
@@ -127,10 +135,12 @@ function TradeModel(stompClient) {
   })
 
   self.executeTrade = function() {
-	if ((self.action() === 'Sell') && (self.sharesToTrade() > self.currentRow().shares())) {
-		self.error('Not enough shares to sell (' + self.currentRow().shares() + ' available)');
-		return;
-	}
+    if (!self.suppressError()) {
+      if ((self.action() === 'Sell') && (self.sharesToTrade() > self.currentRow().shares())) {
+        self.error('Not enough shares to sell (' + self.currentRow().shares() + ')');
+        return;
+      }
+    }
     var trade = {
         "action" : self.action(),
         "ticker" : self.currentRow().ticker,

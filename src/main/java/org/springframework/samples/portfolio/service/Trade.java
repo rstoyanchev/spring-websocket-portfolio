@@ -15,31 +15,59 @@
  */
 package org.springframework.samples.portfolio.service;
 
-import java.math.BigDecimal;
 
+public class Trade {
 
-public class Quote {
+	private String ticker;
 
-	private final String ticker;
+	private int shares;
 
-	private final BigDecimal price;
+	private TradeAction action;
 
+	private String username;
 
-	public Quote(String ticker, BigDecimal price) {
-		this.ticker = ticker;
-		this.price = price;
-	}
 
 	public String getTicker() {
 		return this.ticker;
 	}
 
-	public BigDecimal getPrice() {
-		return this.price;
+	public void setTicker(String ticker) {
+		this.ticker = ticker;
+	}
+
+	public int getShares() {
+		return this.shares;
+	}
+
+	public void setShares(int shares) {
+		this.shares = shares;
+	}
+
+	public TradeAction getAction() {
+		return this.action;
+	}
+
+	public void setAction(TradeAction action) {
+		this.action = action;
+	}
+
+	public String getUsername() {
+		return this.username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	@Override
 	public String toString() {
-		return "Quote [ticker=" + this.ticker + ", this.price=" + price + "]";
+		return "TradeRequest [ticker=" + this.ticker + ", shares=" + this.shares
+				+ ", action=" + this.action + ", username=" + this.username + "]";
 	}
+
+
+	public enum TradeAction {
+		Buy, Sell;
+	}
+
 }

@@ -15,31 +15,13 @@
  */
 package org.springframework.samples.portfolio.service;
 
-import java.math.BigDecimal;
+
+@SuppressWarnings("serial")
+public class PortfolioNotFoundException extends RuntimeException {
 
 
-public class Quote {
-
-	private final String ticker;
-
-	private final BigDecimal price;
-
-
-	public Quote(String ticker, BigDecimal price) {
-		this.ticker = ticker;
-		this.price = price;
+	public PortfolioNotFoundException(String username) {
+		super("Portfolio not found for user=" + username);
 	}
 
-	public String getTicker() {
-		return this.ticker;
-	}
-
-	public BigDecimal getPrice() {
-		return this.price;
-	}
-
-	@Override
-	public String toString() {
-		return "Quote [ticker=" + this.ticker + ", this.price=" + price + "]";
-	}
 }

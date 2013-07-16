@@ -15,16 +15,48 @@
  */
 package org.springframework.samples.portfolio.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.samples.portfolio.Portfolio;
-import org.springframework.samples.portfolio.web.TradeRequest;
+import org.springframework.samples.portfolio.PortfolioPosition;
+import org.springframework.stereotype.Service;
+
 
 /**
  * @author Rob Winch
- *
  */
-public interface PortfolioService {
+@Service
+public class PortfolioService {
 
-	Portfolio findPortfolio(String username);
+	// user -> Portfolio
+	private final Map<String, Portfolio> portfolioLookup = new HashMap<>();
 
-	void executeTradeRequest(TradeRequest tradeRequest, String username);
+
+	public PortfolioService() {
+
+		Portfolio portfolio = new Portfolio();
+		portfolio.addPosition(new PortfolioPosition("Citrix Systems, Inc.", "CTXS", 24.30, 75));
+		portfolio.addPosition(new PortfolioPosition("Dell Inc.", "DELL", 13.44, 50));
+		portfolio.addPosition(new PortfolioPosition("Microsoft", "MSFT", 34.15, 33));
+		portfolio.addPosition(new PortfolioPosition("Oracle", "ORCL", 31.22, 45));
+		this.portfolioLookup.put("fabrice", portfolio);
+
+		portfolio = new Portfolio();
+		portfolio.addPosition(new PortfolioPosition("EMC Corporation", "EMC", 24.30, 75));
+		portfolio.addPosition(new PortfolioPosition("Google Inc", "GOOG", 905.09, 5));
+		portfolio.addPosition(new PortfolioPosition("VMware, Inc.", "VMW", 65.58, 23));
+		portfolio.addPosition(new PortfolioPosition("Red Hat", "RHT", 48.30, 15));
+		this.portfolioLookup.put("paulson", portfolio);
+	}
+
+
+	public Portfolio findPortfolio(String username) throws PortfolioNotFoundException {
+		Portfolio portfolio = this.portfolioLookup.get(username);
+		if (portfolio == null) {
+			throw new PortfolioNotFoundException(username);
+		}
+		return portfolio;
+	}
+
 }
