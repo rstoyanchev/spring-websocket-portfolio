@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
 import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
@@ -41,6 +41,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
 	private final MessageConverter<?> messageConverter = new MappingJackson2MessageConverter();
 
+	private final SimpleUserSessionResolver userSessionResolver = new SimpleUserSessionResolver();
+
+
 	@Bean
 	public SimpleUrlHandlerMapping handlerMapping() {
 
@@ -56,31 +59,25 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public StompWebSocketHandler stompWebSocketHandler() {
 		StompWebSocketHandler handler = new StompWebSocketHandler(inboundChannel());
-		handler.setUserSessionResolver(userSessionResolver());
+		handler.setUserSessionResolver(this.userSessionResolver);
 		outboundChannel().subscribe(handler);
 		return handler;
 	}
 
-	@Bean
-	public SimpleUserSessionResolver userSessionResolver() {
-		return new SimpleUserSessionResolver();
-	}
+	// MessageHandler for delegating messages to annotated methods.
 
 	@Bean
 	public AnnotationMethodMessageHandler annotationMessageHandler() {
-		AnnotationMethodMessageHandler handler = new AnnotationMethodMessageHandler(inboundChannel(), outboundChannel());
+
+		AnnotationMethodMessageHandler handler =
+				new AnnotationMethodMessageHandler(inboundMessagingTemplate(), outboundMessagingTemplate());
+
 		handler.setMessageConverter(this.messageConverter);
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
 
-	@Bean
-	public UserDestinationMessageHandler userMessageHandler() {
-		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(messagingTemplate());
-		handler.setUserSessionResolver(userSessionResolver());
-		inboundChannel().subscribe(handler);
-		return handler;
-	}
+	// MessageHandler that can serve as a simple message broker.
 
 	@Bean
 	@Profile("simple-broker")
@@ -89,6 +86,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		inboundChannel().subscribe(handler);
 		return handler;
 	}
+
+	// MessageHandler that can relay messages to and from an external STOMP message broker.
 
 	@Bean
 	@Profile("stomp-broker-relay")
@@ -99,8 +98,20 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return handler;
 	}
 
+	// MessageHandler that can resolve destinations prefixed with "/user/{user}"
+
 	@Bean
-	public MessageSendingOperations<String> messagingTemplate() {
+	public UserDestinationMessageHandler userMessageHandler() {
+		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(inboundMessagingTemplate());
+		handler.setUserSessionResolver(this.userSessionResolver);
+		inboundChannel().subscribe(handler);
+		return handler;
+	}
+
+	// MessagingTemplate and MessageChannel for incoming messages to the application
+
+	@Bean
+	public SimpMessageSendingOperations inboundMessagingTemplate() {
 		SimpMessagingTemplate template = new SimpMessagingTemplate(inboundChannel());
 		template.setMessageConverter(this.messageConverter);
 		return template;
@@ -111,10 +122,21 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
 
+	// MessagingTemplate and MessageChannel for outgoing messages to clients
+
+	@Bean
+	public SimpMessageSendingOperations outboundMessagingTemplate() {
+		SimpMessagingTemplate template = new SimpMessagingTemplate(outboundChannel());
+		template.setMessageConverter(this.messageConverter);
+		return template;
+	}
+
 	@Bean
 	public SubscribableChannel outboundChannel() {
 		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
+
+	// Executor for message passing via MessageChannel
 
 	@Bean
 	public ThreadPoolTaskExecutor asyncExecutor() {
@@ -124,6 +146,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		executor.setThreadNamePrefix("MessageChannel-");
 		return executor;
 	}
+
+	// Task executor for use in SockJS (heartbeat frames, session timeouts)
 
 	@Bean
 	public ThreadPoolTaskScheduler taskScheduler() {

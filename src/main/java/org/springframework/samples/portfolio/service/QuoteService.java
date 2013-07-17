@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.core.MessageSendingOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class QuoteService {
 
 
 	@Autowired
-	public QuoteService(MessageSendingOperations<String> messagingTemplate) {
+	public QuoteService(@Qualifier("inboundMessagingTemplate") MessageSendingOperations<String> messagingTemplate) {
 		this.messagingTemplate = messagingTemplate;
 	}
 

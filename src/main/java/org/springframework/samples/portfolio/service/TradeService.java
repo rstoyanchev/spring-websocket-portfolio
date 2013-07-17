@@ -21,7 +21,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.service.Trade.TradeAction;
@@ -34,7 +35,7 @@ public class TradeService {
 
 	private static final Log logger = LogFactory.getLog(TradeService.class);
 
-	private final MessageSendingOperations<String> messagingTemplate;
+	private final SimpMessageSendingOperations messagingTemplate;
 
 	private final PortfolioService portfolioService;
 
@@ -42,7 +43,10 @@ public class TradeService {
 
 
 	@Autowired
-	public TradeService(MessageSendingOperations<String> messagingTemplate, PortfolioService portfolioService) {
+	public TradeService(
+			@Qualifier("inboundMessagingTemplate") SimpMessageSendingOperations messagingTemplate,
+			PortfolioService portfolioService) {
+
 		this.messagingTemplate = messagingTemplate;
 		this.portfolioService = portfolioService;
 	}
@@ -70,11 +74,11 @@ public class TradeService {
 				String user = tr.trade.getUsername();
 				if (tr.position != null) {
 					logger.debug("Position update: " + tr.position);
-					this.messagingTemplate.convertAndSend("/user/" + user + "/queue/position-updates", tr.position);
+					this.messagingTemplate.convertAndSendToUser(user, "/queue/position-updates", tr.position);
 				}
 				else {
 					logger.debug("Rejected trade: " + tr.trade);
-					this.messagingTemplate.convertAndSend("/user/" + user + "/queue/rejected-trades", tr.trade);
+					this.messagingTemplate.convertAndSendToUser(user, "/queue/rejected-trades", tr.trade);
 				}
 				this.tradeResults.remove(tr);
 			}
