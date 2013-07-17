@@ -21,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
@@ -43,10 +42,7 @@ public class TradeService {
 
 
 	@Autowired
-	public TradeService(
-			@Qualifier("inboundMessagingTemplate") SimpMessageSendingOperations messagingTemplate,
-			PortfolioService portfolioService) {
-
+	public TradeService(SimpMessageSendingOperations messagingTemplate, PortfolioService portfolioService) {
 		this.messagingTemplate = messagingTemplate;
 		this.portfolioService = portfolioService;
 	}

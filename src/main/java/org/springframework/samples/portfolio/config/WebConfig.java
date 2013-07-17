@@ -2,7 +2,6 @@ package org.springframework.samples.portfolio.config;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -56,83 +55,84 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return hm;
 	}
 
+	// WebSocketHandler for STOMP messages
+
 	@Bean
 	public StompWebSocketHandler stompWebSocketHandler() {
-		StompWebSocketHandler handler = new StompWebSocketHandler(inboundChannel());
+		StompWebSocketHandler handler = new StompWebSocketHandler(dispatchChannel());
 		handler.setUserSessionResolver(this.userSessionResolver);
-		outboundChannel().subscribe(handler);
+		webSocketHandlerChannel().subscribe(handler);
 		return handler;
 	}
 
-	// MessageHandler for delegating messages to annotated methods.
+	// MessageHandler for processing messages by delegating to @Controller annotated methods
 
 	@Bean
 	public AnnotationMethodMessageHandler annotationMessageHandler() {
 
 		AnnotationMethodMessageHandler handler =
-				new AnnotationMethodMessageHandler(inboundMessagingTemplate(), outboundMessagingTemplate());
+				new AnnotationMethodMessageHandler(dispatchMessagingTemplate(), webSocketHandlerChannel());
 
 		handler.setMessageConverter(this.messageConverter);
-		inboundChannel().subscribe(handler);
+		dispatchChannel().subscribe(handler);
 		return handler;
 	}
 
-	// MessageHandler that can serve as a simple message broker.
+	// MessageHandler that acts as a "simple" message broker
+	// See DispatcherServletInitializer for enabling/disabling the "simple-broker" profile
 
 	@Bean
 	@Profile("simple-broker")
 	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
-		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(outboundChannel());
-		inboundChannel().subscribe(handler);
+		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(webSocketHandlerChannel());
+		dispatchChannel().subscribe(handler);
 		return handler;
 	}
 
-	// MessageHandler that can relay messages to and from an external STOMP message broker.
+	// MessageHandler that relays messages to and from external STOMP broker
+	// See DispatcherServletInitializer for enabling/disabling the "stomp-broker-relay" profile
 
 	@Bean
 	@Profile("stomp-broker-relay")
 	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
-		List<String> destinations = Arrays.asList("/topic", "/queue");
-		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(outboundChannel(), destinations);
-		inboundChannel().subscribe(handler);
+
+		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(
+				webSocketHandlerChannel(), Arrays.asList("/topic", "/queue"));
+
+		dispatchChannel().subscribe(handler);
 		return handler;
 	}
 
-	// MessageHandler that can resolve destinations prefixed with "/user/{user}"
+	// MessageHandler that resolves destinations prefixed with "/user/{user}"
+	// See the Javadoc of UserDestinationMessageHandler for details
 
 	@Bean
 	public UserDestinationMessageHandler userMessageHandler() {
-		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(inboundMessagingTemplate());
+		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(dispatchMessagingTemplate());
 		handler.setUserSessionResolver(this.userSessionResolver);
-		inboundChannel().subscribe(handler);
+		dispatchChannel().subscribe(handler);
 		return handler;
 	}
 
-	// MessagingTemplate and MessageChannel for incoming messages to the application
+	// MessagingTemplate (and MessageChannel) to dispatch messages to for further processing
+	// MessageHandler beans above are subscribed to this channel
 
 	@Bean
-	public SimpMessageSendingOperations inboundMessagingTemplate() {
-		SimpMessagingTemplate template = new SimpMessagingTemplate(inboundChannel());
+	public SimpMessageSendingOperations dispatchMessagingTemplate() {
+		SimpMessagingTemplate template = new SimpMessagingTemplate(dispatchChannel());
 		template.setMessageConverter(this.messageConverter);
 		return template;
 	}
 
 	@Bean
-	public SubscribableChannel inboundChannel() {
+	public SubscribableChannel dispatchChannel() {
 		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
 
-	// MessagingTemplate and MessageChannel for outgoing messages to clients
+	// Channel for sending STOMP messages to connected WebSocket sessions (mostly for internal use)
 
 	@Bean
-	public SimpMessageSendingOperations outboundMessagingTemplate() {
-		SimpMessagingTemplate template = new SimpMessagingTemplate(outboundChannel());
-		template.setMessageConverter(this.messageConverter);
-		return template;
-	}
-
-	@Bean
-	public SubscribableChannel outboundChannel() {
+	public SubscribableChannel webSocketHandlerChannel() {
 		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
 
