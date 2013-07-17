@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.ReplyTo;
+import org.springframework.messaging.simp.annotation.ReplyToUser;
 import org.springframework.messaging.simp.annotation.SubscribeEvent;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
@@ -50,7 +50,6 @@ public class PortfolioController {
 		this.tradeService = tradeService;
 	}
 
-
 	@SubscribeEvent("/positions")
 	public List<PortfolioPosition> getPortfolios(Principal principal) throws Exception {
 		logger.debug("Positions for " + principal.getName());
@@ -58,7 +57,7 @@ public class PortfolioController {
 		return portfolio.getPositions();
 	}
 
-	@MessageMapping("/trade")
+	@MessageMapping(value="/trade")
 	public void executeTrade(Trade trade, Principal principal) {
 		String user = (trade.getShares() > 0) ? principal.getName() : "bogus";
 		trade.setUsername(user);
@@ -67,9 +66,9 @@ public class PortfolioController {
 	}
 
 	@MessageExceptionHandler
-	@ReplyTo("/queue/error")
+	@ReplyToUser(value="/queue/error")
 	public String handleException(PortfolioNotFoundException exception) {
-		return exception.getMessage();
+		return exception.getMessage() + ". This error is simulated when 0 or less shares are entered";
 	}
 
 }

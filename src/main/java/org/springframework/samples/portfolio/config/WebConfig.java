@@ -17,7 +17,7 @@ import org.springframework.messaging.simp.handler.SimpleUserSessionResolver;
 import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
-import org.springframework.messaging.support.channel.TaskExecutorSubscribableChannel;
+import org.springframework.messaging.support.channel.ExecutorSubscribableChannel;
 import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -108,12 +108,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public SubscribableChannel inboundChannel() {
-		return new TaskExecutorSubscribableChannel(asyncExecutor());
+		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
 
 	@Bean
 	public SubscribableChannel outboundChannel() {
-		return new TaskExecutorSubscribableChannel(asyncExecutor());
+		return new ExecutorSubscribableChannel(asyncExecutor());
 	}
 
 	@Bean
