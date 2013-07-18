@@ -11,4 +11,3 @@ rm -rf $TOMCAT8_HOME/webapps/spring-websocket-portfolio*
 cp target/spring-websocket-portfolio.war $TOMCAT8_HOME/webapps/
 
 $TOMCAT8_HOME/bin/startup.sh
-
