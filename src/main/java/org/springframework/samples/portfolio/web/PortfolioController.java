@@ -27,7 +27,6 @@ import org.springframework.messaging.simp.annotation.ReplyToUser;
 import org.springframework.messaging.simp.annotation.SubscribeEvent;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
-import org.springframework.samples.portfolio.service.PortfolioNotFoundException;
 import org.springframework.samples.portfolio.service.PortfolioService;
 import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.service.TradeService;
@@ -67,8 +66,8 @@ public class PortfolioController {
 
 	@MessageExceptionHandler
 	@ReplyToUser(value="/queue/error")
-	public String handleException(PortfolioNotFoundException exception) {
-		return exception.getMessage() + ". This error is simulated when 0 or less shares are entered";
+	public String handleException(Throwable exception) {
+		return exception.getMessage();
 	}
 
 }
