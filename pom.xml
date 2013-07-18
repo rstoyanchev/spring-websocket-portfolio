@@ -9,7 +9,6 @@
 	<properties>
 		<org.springframework-version>4.0.0.BUILD-SNAPSHOT</org.springframework-version>
 		<org.springframework.security-version>3.2.0.M2</org.springframework.security-version>
-		<tomcat-version>8.0-SNAPSHOT</tomcat-version>
 	</properties>
 
 	<dependencies>
@@ -48,12 +47,12 @@
 		<dependency>
 			<groupId>org.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.0.0.M1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectreactor</groupId>
 			<artifactId>reactor-tcp</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.0.0.M1</version>
 		</dependency>
 
 		<dependency>
@@ -129,20 +128,6 @@
 			<version>${org.springframework.security-version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-websocket</artifactId>
-			<version>${tomcat-version}</version>
-			<scope>test</scope>
-		</dependency>
-		
 	</dependencies>
 
 	<repositories>
@@ -154,28 +139,15 @@
 		</repository>
 		<repository>
 			<id>spring-milestones</id>
-			<url>http://repo.springsource.org/milestone</url>
+			<url>http://repo.springsource.org/libs-milestone</url>
 			<snapshots><enabled>false</enabled></snapshots>
 			<releases><enabled>true</enabled></releases>
-		</repository>
-		<repository>
-			<id>tomcat-snapshots</id>
-			<url>https://repository.apache.org/content/repositories/snapshots</url>
-			<snapshots><enabled>true</enabled></snapshots>
-			<releases><enabled>false</enabled></releases>
 		</repository>
 		<repository>
 			<id>java-net</id>
 			<url>https://maven.java.net/content/repositories/releases</url>
 		</repository>
 	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>apache.snapshots</id>
-			<url>http://repository.apache.org/content/groups/snapshots-group/</url>
-		</pluginRepository>
-	</pluginRepositories>	
 
 	<build>
 		<finalName>${project.artifactId}</finalName>
