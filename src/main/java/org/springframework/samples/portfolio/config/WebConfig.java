@@ -12,7 +12,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
 import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
-import org.springframework.messaging.simp.handler.SimpleUserSessionResolver;
+import org.springframework.messaging.simp.handler.SimpleUserQueueSuffixResolver;
 import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
@@ -40,7 +40,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
 	private final MessageConverter<?> messageConverter = new MappingJackson2MessageConverter();
 
-	private final SimpleUserSessionResolver userSessionResolver = new SimpleUserSessionResolver();
+	private final SimpleUserQueueSuffixResolver userQueueSuffixResolver = new SimpleUserQueueSuffixResolver();
 
 
 	@Bean
@@ -60,7 +60,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public StompWebSocketHandler stompWebSocketHandler() {
 		StompWebSocketHandler handler = new StompWebSocketHandler(dispatchChannel());
-		handler.setUserSessionResolver(this.userSessionResolver);
+		handler.setUserQueueSuffixResolver(this.userQueueSuffixResolver);
 		webSocketHandlerChannel().subscribe(handler);
 		return handler;
 	}
@@ -108,14 +108,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public UserDestinationMessageHandler userMessageHandler() {
-		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(dispatchMessagingTemplate());
-		handler.setUserSessionResolver(this.userSessionResolver);
+		UserDestinationMessageHandler handler = new UserDestinationMessageHandler(
+				dispatchMessagingTemplate(), this.userQueueSuffixResolver);
 		dispatchChannel().subscribe(handler);
 		return handler;
 	}
 
 	// MessagingTemplate (and MessageChannel) to dispatch messages to for further processing
-	// MessageHandler beans above are subscribed to this channel
+	// All MessageHandler beans above subscribe to this channel
 
 	@Bean
 	public SimpMessageSendingOperations dispatchMessagingTemplate() {
