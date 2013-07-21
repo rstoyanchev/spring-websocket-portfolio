@@ -61,7 +61,7 @@ public class Trade {
 
 	@Override
 	public String toString() {
-		return "TradeRequest [ticker=" + this.ticker + ", shares=" + this.shares
+		return "[ticker=" + this.ticker + ", shares=" + this.shares
 				+ ", action=" + this.action + ", username=" + this.username + "]";
 	}
 

@@ -55,19 +55,40 @@
           </tfoot>
           <tbody></tbody>
         </table>
+        <div data-bind="visible: notifications().length > 0">
+          <div>
+            <button type="button" class="btn btn-warning collapsed" data-toggle="collapse"
+              data-target="#notifications">Notifications</button>
+          </div>
+          <div id="notifications" class="collapse">
+            <ul data-bind="foreach: notifications">
+              <li data-bind="text: notification"></li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div id="trade-dialog" class="modal hide fade" tabindex="-1">
         <div class="modal-body">
-          <form class="form-trade" data-bind="submit: trade().executeTrade">
-            <h2 class="form-trade-heading"><span data-bind="text: trade().action"></span>
-              <span data-bind="text: trade().currentRow().ticker"></span> shares:</h2>
-            <div class="alert alert-error" data-bind="visible: trade().error().length > 0">
-              <p data-bind="text: trade().error"></p>
+          <form class="form-horizontal" data-bind="submit: trade().executeTrade">
+            <fieldset>
+              <legend>
+                <span data-bind="text: trade().action"></span>
+                <span data-bind="text: trade().currentRow().company"></span> Stock
+              </legend>
+            </fieldset>
+            <div class="control-group" data-bind="css: {error: trade().error()}">
+              <label class="control-label" for="inputShares">Shares</label>
+              <div class="controls">
+                <input id="inputShares" type="text" data-bind="value: trade().sharesToTrade">
+                <span class="help-inline" data-bind="text: trade().error">Please enter</span>
+              </div>
             </div>
-            <input type="text" data-bind="value: trade().sharesToTrade" class="input-block-level" placeholder="Shares">
-            <label class="checkbox">
-              <input type="checkbox" data-bind="checked: trade().suppressError">
-                Allow invalid input (e.g. sell more than available)</label>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox"><input type="checkbox" data-bind="checked: trade().suppressValidation">
+                  Suppress client-side validation</label>
+              </div>
+            </div>
             <button class="btn" data-dismiss="modal">Close</button>
             <button class="btn btn-primary" type="submit">
               <span data-bind="text: trade().action"></span>

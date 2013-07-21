@@ -26,12 +26,15 @@ public class PortfolioPosition {
 
 	private final int shares;
 
+	private final long updateTime;
+
 
 	public PortfolioPosition(String company, String ticker, double price, int shares) {
 		this.company = company;
 		this.ticker = ticker;
 		this.price = price;
 		this.shares = shares;
+		this.updateTime = System.currentTimeMillis();
 	}
 
 	public PortfolioPosition(PortfolioPosition other, int sharesToAddOrSubtract) {
@@ -39,6 +42,7 @@ public class PortfolioPosition {
 		this.ticker = other.ticker;
 		this.price = other.price;
 		this.shares = other.shares + sharesToAddOrSubtract;
+		this.updateTime = System.currentTimeMillis();
 	}
 
 	public String getCompany() {
@@ -55,6 +59,10 @@ public class PortfolioPosition {
 
 	public int getShares() {
 		return this.shares;
+	}
+
+	public long getUpdateTime() {
+		return this.updateTime;
 	}
 
 	@Override

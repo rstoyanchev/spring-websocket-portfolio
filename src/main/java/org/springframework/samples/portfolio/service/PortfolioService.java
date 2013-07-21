@@ -51,10 +51,10 @@ public class PortfolioService {
 	}
 
 
-	public Portfolio findPortfolio(String username) throws PortfolioNotFoundException {
+	public Portfolio findPortfolio(String username) {
 		Portfolio portfolio = this.portfolioLookup.get(username);
 		if (portfolio == null) {
-			throw new PortfolioNotFoundException(username);
+			throw new IllegalArgumentException(username);
 		}
 		return portfolio;
 	}

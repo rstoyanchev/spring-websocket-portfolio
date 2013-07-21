@@ -73,6 +73,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		AnnotationMethodMessageHandler handler =
 				new AnnotationMethodMessageHandler(dispatchMessagingTemplate(), webSocketHandlerChannel());
 
+		handler.setDestinationPrefixes(Arrays.asList("/app/"));
 		handler.setMessageConverter(this.messageConverter);
 		dispatchChannel().subscribe(handler);
 		return handler;
@@ -85,6 +86,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Profile("simple-broker")
 	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
 		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(webSocketHandlerChannel());
+		handler.setDestinationPrefixes(Arrays.asList("/topic/", "/queue/"));
 		dispatchChannel().subscribe(handler);
 		return handler;
 	}
@@ -97,7 +99,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	public StompBrokerRelayMessageHandler stompBrokerRelayMessageHandler() {
 
 		StompBrokerRelayMessageHandler handler = new StompBrokerRelayMessageHandler(
-				webSocketHandlerChannel(), Arrays.asList("/topic", "/queue"));
+				webSocketHandlerChannel(), Arrays.asList("/topic/", "/queue/"));
 
 		dispatchChannel().subscribe(handler);
 		return handler;

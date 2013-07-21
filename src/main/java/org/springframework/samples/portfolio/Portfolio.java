@@ -43,7 +43,7 @@ public class Portfolio {
 	 */
 	public PortfolioPosition buy(String ticker, int sharesToBuy) {
 		PortfolioPosition position = this.positionLookup.get(ticker);
-		if (position == null) {
+		if ((position == null) || (sharesToBuy < 1)) {
 			return null;
 		}
 		position = new PortfolioPosition(position, sharesToBuy);
@@ -56,7 +56,7 @@ public class Portfolio {
 	 */
 	public PortfolioPosition sell(String ticker, int sharesToSell) {
 		PortfolioPosition position = this.positionLookup.get(ticker);
-		if ((position == null) || (position.getShares() < sharesToSell)) {
+		if ((position == null) || (sharesToSell < 1) || (position.getShares() < sharesToSell)) {
 			return null;
 		}
 		position = new PortfolioPosition(position, -sharesToSell);

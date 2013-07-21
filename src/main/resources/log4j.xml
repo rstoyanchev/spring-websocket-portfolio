@@ -15,7 +15,7 @@
 	</logger>
 
   <logger name="org.springframework.messaging">
-    <level value="trace" />
+    <level value="debug" />
   </logger>
 
 	<logger name="org.springframework.web">

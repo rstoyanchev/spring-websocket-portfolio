@@ -59,24 +59,23 @@ public class TradeService {
 		PortfolioPosition newPosition = (trade.getAction() == TradeAction.Buy) ?
 				portfolio.buy(ticker, sharesToTrade) : portfolio.sell(ticker, sharesToTrade);
 
-		this.tradeResults.add(new TradeResult(trade, newPosition));
+		if (newPosition == null) {
+			String payload = "Rejected trade " + trade;
+			this.messagingTemplate.convertAndSendToUser(trade.getUsername(), "/queue/errors", payload);
+			return;
+		}
+
+		this.tradeResults.add(new TradeResult(trade.getUsername(), newPosition));
 	}
 
-	@Scheduled(fixedDelay=3000)
+	@Scheduled(fixedDelay=1500)
 	public void sendTradeNotifications() {
 
-		for (TradeResult tr : this.tradeResults) {
-			if (System.currentTimeMillis() >= (tr.createTime + 3000)) {
-				String user = tr.trade.getUsername();
-				if (tr.position != null) {
-					logger.debug("Position update: " + tr.position);
-					this.messagingTemplate.convertAndSendToUser(user, "/queue/position-updates", tr.position);
-				}
-				else {
-					logger.debug("Rejected trade: " + tr.trade);
-					this.messagingTemplate.convertAndSendToUser(user, "/queue/rejected-trades", tr.trade);
-				}
-				this.tradeResults.remove(tr);
+		for (TradeResult result : this.tradeResults) {
+			if (System.currentTimeMillis() >= (result.timestamp + 1500)) {
+				logger.debug("Position update: " + result.position);
+				this.messagingTemplate.convertAndSendToUser(result.user, "/queue/position-updates", result.position);
+				this.tradeResults.remove(result);
 			}
 		}
 	}
@@ -84,14 +83,14 @@ public class TradeService {
 
 	private static class TradeResult {
 
-		private final Trade trade;
+		private final String user;
 		private final PortfolioPosition position;
-		private final long createTime;
+		private final long timestamp;
 
-		public TradeResult(Trade trade, PortfolioPosition position) {
-			this.trade = trade;
+		public TradeResult(String user, PortfolioPosition position) {
+			this.user = user;
 			this.position = position;
-			this.createTime = System.currentTimeMillis();
+			this.timestamp = System.currentTimeMillis();
 		}
 	}
 

@@ -49,23 +49,22 @@ public class PortfolioController {
 		this.tradeService = tradeService;
 	}
 
-	@SubscribeEvent("/positions")
+	@SubscribeEvent("/app/positions")
 	public List<PortfolioPosition> getPortfolios(Principal principal) throws Exception {
 		logger.debug("Positions for " + principal.getName());
 		Portfolio portfolio = this.portfolioService.findPortfolio(principal.getName());
 		return portfolio.getPositions();
 	}
 
-	@MessageMapping(value="/trade")
+	@MessageMapping(value="/app/trade")
 	public void executeTrade(Trade trade, Principal principal) {
-		String user = (trade.getShares() > 0) ? principal.getName() : "bogus";
-		trade.setUsername(user);
+		trade.setUsername(principal.getName());
 		logger.debug("Trade: " + trade);
 		this.tradeService.executeTrade(trade);
 	}
 
 	@MessageExceptionHandler
-	@ReplyToUser(value="/queue/error")
+	@ReplyToUser(value="/queue/errors")
 	public String handleException(Throwable exception) {
 		return exception.getMessage();
 	}

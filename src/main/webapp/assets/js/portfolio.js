@@ -5,6 +5,7 @@ function ApplicationModel(stompClient) {
   self.username = ko.observable();
   self.portfolio = ko.observable(new PortfolioModel());
   self.trade = ko.observable(new TradeModel(stompClient));
+  self.notifications = ko.observableArray();
 
   self.connect = function() {
     stompClient.connect('', '', function(frame) {
@@ -15,32 +16,34 @@ function ApplicationModel(stompClient) {
 
       self.username(userName);
 
-      stompClient.subscribe("/positions", function(message) {
-        // console.log("Positions " + message.body);
+      stompClient.subscribe("/app/positions", function(message) {
         self.portfolio().loadPositions(JSON.parse(message.body));
       });
       stompClient.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
-        // console.log("Quote " + message.body);
         self.portfolio().processQuote(JSON.parse(message.body));
       });
       stompClient.subscribe("/queue/position-updates" + queueSuffix, function(message) {
-        console.log("Position update " + message.body);
+        self.pushNotification("Position update " + message.body);
         self.portfolio().updatePosition(JSON.parse(message.body));
       });
-      stompClient.subscribe("/queue/rejected-trades" + queueSuffix, function(message) {
-        console.log("Rejected trade " + message.body);
-      });
-      stompClient.subscribe("/queue/error" + queueSuffix, function(message) {
-        console.log("Error message " + message.body);
+      stompClient.subscribe("/queue/errors" + queueSuffix, function(message) {
+        self.pushNotification("Error " + message.body);
       });
     }, function(error) {
-      console.log('error ' + error);
+      console.log("STOMP protocol error " + error);
     });
+  }
+
+  self.pushNotification = function(text) {
+    self.notifications.push({notification: text});
+    if (self.notifications().length > 5) {
+      self.notifications.shift();
+    }
   }
 
   self.logout = function() {
     stompClient.disconnect();
-    window.location.href = './logout.html';
+    window.location.href = "./logout.html";
   }
 }
 
@@ -114,7 +117,7 @@ function TradeModel(stompClient) {
   self.sharesToTrade = ko.observable(0);
   self.currentRow = ko.observable({});
   self.error = ko.observable('');
-  self.suppressError = ko.observable(false);
+  self.suppressValidation = ko.observable(false);
 
   self.showBuy  = function(row) { self.showModal('Buy', row) }
   self.showSell = function(row) { self.showModal('Sell', row) }
@@ -124,7 +127,7 @@ function TradeModel(stompClient) {
     self.sharesToTrade(0);
     self.currentRow(row);
     self.error('');
-    self.suppressError(false);
+    self.suppressValidation(false);
     $('#trade-dialog').modal();
   }
 
@@ -133,13 +136,22 @@ function TradeModel(stompClient) {
     input.focus();
     input.select();
   })
+  
+  var validateShares = function() {
+      if (isNaN(self.sharesToTrade()) || (self.sharesToTrade() < 1)) {
+        self.error('Invalid number');
+        return false;
+      }
+      if ((self.action() === 'Sell') && (self.sharesToTrade() > self.currentRow().shares())) {
+        self.error('Not enough shares');
+        return false;
+      }
+      return true;
+  }
 
   self.executeTrade = function() {
-    if (!self.suppressError()) {
-      if ((self.action() === 'Sell') && (self.sharesToTrade() > self.currentRow().shares())) {
-        self.error('Not enough shares to sell (' + self.currentRow().shares() + ')');
-        return;
-      }
+    if (!self.suppressValidation() && !validateShares()) {
+      return;
     }
     var trade = {
         "action" : self.action(),
@@ -147,7 +159,7 @@ function TradeModel(stompClient) {
         "shares" : self.sharesToTrade()
       };
     console.log(trade);
-    stompClient.send("/trade", {}, JSON.stringify(trade));
+    stompClient.send("/app/trade", {}, JSON.stringify(trade));
     $('#trade-dialog').modal('hide');
   }
 }
