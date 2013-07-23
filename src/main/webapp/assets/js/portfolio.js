@@ -13,7 +13,7 @@ function ApplicationModel(stompClient) {
       console.log('Connected ' + frame);
       var userName = frame.headers['user-name'];
       var queueSuffix = frame.headers['queue-suffix'];
-
+      
       self.username(userName);
 
       stompClient.subscribe("/app/positions", function(message) {

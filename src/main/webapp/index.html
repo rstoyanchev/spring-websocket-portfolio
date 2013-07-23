@@ -17,7 +17,7 @@
         <h3 class="muted">Stock Trading Portfolio</h3>
       </div>
       <div id="main-content">
-        <table id="portfolioTable" class="table table-striped">
+        <table class="table table-striped">
           <thead>
             <tr>
               <th>Company</th>
@@ -47,7 +47,7 @@
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="5">Total value:</td>
+              <td colspan="5">Total</td>
               <td data-bind="text: portfolio().totalShares" class="number"></td>
               <td data-bind="text: portfolio().totalValue" class="number"></td>
               <td></td>
@@ -55,16 +55,11 @@
           </tfoot>
           <tbody></tbody>
         </table>
-        <div data-bind="visible: notifications().length > 0">
-          <div>
-            <button type="button" class="btn btn-warning collapsed" data-toggle="collapse"
-              data-target="#notifications">Notifications</button>
-          </div>
-          <div id="notifications" class="collapse">
-            <ul data-bind="foreach: notifications">
-              <li data-bind="text: notification"></li>
-            </ul>
-          </div>
+        <div class="alert alert-warning">
+          <h5>Notifications</h5>
+          <ul data-bind="foreach: notifications">
+            <li data-bind="text: notification"></li>
+          </ul>
         </div>
       </div>
       <div id="trade-dialog" class="modal hide fade" tabindex="-1">
@@ -96,7 +91,7 @@
           </form>
         </div>
       </div>
-    </div> <!-- /container -->
+    </div>
 
     <!-- 3rd party -->
     <script src="assets/js/jquery-1.8.3.js"></script>
@@ -112,10 +107,11 @@
         var socket = new SockJS('/spring-websocket-portfolio/portfolio');
         var stompClient = Stomp.over(socket);
 
-        var applicationModel = new ApplicationModel(stompClient);
-        ko.applyBindings(applicationModel);
+        var appModel = new ApplicationModel(stompClient);
+        ko.applyBindings(appModel);
 
-        applicationModel.connect();
+        appModel.connect();
+        appModel.pushNotification("Trade results take a 2-3 second simulated delay. Notifications will appear.");
       })();
     </script>
 

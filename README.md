@@ -19,7 +19,7 @@ At present Tomcat 8 is [available as snapshots](https://repository.apache.org/co
 
 After unzipping Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
-Open a browser and go to [http://localhost:8080/spring-websocket-portfolio/index.html](localhost:8080/spring-websocket-portfolio/index.html)
+Open a browser and go to http://localhost:8080/spring-websocket-portfolio/index.html
 
 ### Jetty 9
 
@@ -27,7 +27,7 @@ The easiest way to run on Jetty 9.0.4:
 
     mvn jetty:run
 
-Open a browser and go to [http://localhost:8080/spring-websocket-portfolio/index.html](localhost:8080/spring-websocket-portfolio/index.html)
+Open a browser and go to http://localhost:8080/spring-websocket-portfolio/index.html
 
 **Note:** To deploy to a Jetty installation, add this to Jetty's `start.ini`:
 
@@ -44,7 +44,8 @@ After unzipping Glassfish 4 start the server:
 
 Set `GLASSFISH4_HOME` as an environment variable and use [deployGlassfish.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployGlassfish.sh) in this directory.
 
-Open a browser and go to [http://localhost:8080/spring-websocket-portfolio/index.html](localhost:8080/spring-websocket-portfolio/index.html)
+Open a browser and go to http://localhost:8080/spring-websocket-portfolio/index.html
+
 
 ### Using a Message Broker
 
