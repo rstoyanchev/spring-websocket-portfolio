@@ -52,7 +52,7 @@ public class QuoteService {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Sending quote " + quote);
 			}
-			this.messagingTemplate.convertAndSend("/topic/stocks.PRICE.STOCK.NASDAQ." + quote.getTicker(), quote);
+			this.messagingTemplate.convertAndSend("/topic/price.stock." + quote.getTicker(), quote);
 		}
 	}
 

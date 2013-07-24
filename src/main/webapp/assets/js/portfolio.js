@@ -19,7 +19,7 @@ function ApplicationModel(stompClient) {
       stompClient.subscribe("/app/positions", function(message) {
         self.portfolio().loadPositions(JSON.parse(message.body));
       });
-      stompClient.subscribe("/topic/stocks.PRICE.STOCK.NASDAQ.*", function(message) {
+      stompClient.subscribe("/topic/price.stock.*", function(message) {
         self.portfolio().processQuote(JSON.parse(message.body));
       });
       stompClient.subscribe("/queue/position-updates" + queueSuffix, function(message) {
