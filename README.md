@@ -11,7 +11,7 @@ Client-side libraries used:
 
 Server-side runs on `Tomcat 8`, `Jetty 9.0.4`, or `Glassfish 4.0`. Other servlet containers should also function correctly via fallback options (assuming Servlet 3.0) but they don't support WebSocket yet.
 
-Also see the [blog post](http://blog.springsource.org) introducing these features.
+Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framework-4-0-m2-websocket-messaging-architectures/) introducing these features.
 
 ### Tomcat 8
 
