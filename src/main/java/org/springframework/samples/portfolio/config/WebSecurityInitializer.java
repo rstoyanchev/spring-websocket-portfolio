@@ -17,11 +17,10 @@ package org.springframework.samples.portfolio.config;
 
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 
+
 /**
  * @author Rob Winch
  *
  */
-public class WebSecurityInitializer extends
-		AbstractSecurityWebApplicationInitializer {
-
+public class WebSecurityInitializer extends AbstractSecurityWebApplicationInitializer {
 }

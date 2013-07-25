@@ -14,11 +14,19 @@
 		<level value="debug" />
 	</logger>
 
-  <logger name="org.springframework.messaging">
-    <level value="debug" />
-  </logger>
+	<logger name="org.springframework.messaging">
+		<level value="debug" />
+	</logger>
 
 	<logger name="org.springframework.web">
+		<level value="debug" />
+	</logger>
+
+	<logger name="org.springframework.web.socket">
+		<level value="debug" />
+	</logger>
+
+	<logger name="org.springframework.security">
 		<level value="debug" />
 	</logger>
 
