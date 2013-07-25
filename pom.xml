@@ -23,11 +23,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-messaging</artifactId>
-      <version>${org.springframework-version}</version>
-    </dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -45,35 +45,31 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.projectreactor</groupId>
-			<artifactId>reactor-core</artifactId>
-			<version>1.0.0.M1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.projectreactor</groupId>
-			<artifactId>reactor-tcp</artifactId>
-			<version>1.0.0.M1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.websocket</groupId>
-			<artifactId>javax.websocket-api</artifactId>
-			<version>1.0</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 
-		<!--  For SockJS -->
-		<!-- http://jira.codehaus.org/browse/JACKSON-884 -->
+		<!-- Required for reading JSON messages in SockJS -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>2.2.1</version>
+		</dependency>
+
+		<!-- Required when using ReactorSubscribableChannel (vs ExecutorSubscribableChannel) -->
+		<dependency>
+			<groupId>org.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>1.0.0.M1</version>
+		</dependency>
+
+		<!-- Required when the "stomp-broker-relay" profile is enabled -->
+		<dependency>
+			<groupId>org.projectreactor</groupId>
+			<artifactId>reactor-tcp</artifactId>
+			<version>1.0.0.M1</version>
 		</dependency>
 
 		<dependency>
@@ -126,6 +122,12 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>${org.springframework.security-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-jdbc</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
@@ -193,7 +195,7 @@
 				<version>9.0.4.v20130625</version>
 				<configuration>
 					<webApp>
-						<contextPath>/spring-websocket-portfolio</contextPath>
+						<contextPath>/${project.artifactId}</contextPath>
 					</webApp>
 				</configuration>
 			</plugin>
