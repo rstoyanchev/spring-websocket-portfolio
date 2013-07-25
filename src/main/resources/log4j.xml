@@ -27,7 +27,7 @@
 	</logger>
 
 	<logger name="org.springframework.security">
-		<level value="debug" />
+		<level value="warn" />
 	</logger>
 
 	<root>
