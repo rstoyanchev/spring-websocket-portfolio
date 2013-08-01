@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.handler.websocket.SubProtocolWebSocketHandler;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.handler.AnnotationMethodMessageHandler;
@@ -15,7 +16,7 @@ import org.springframework.messaging.simp.handler.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.handler.SimpleUserQueueSuffixResolver;
 import org.springframework.messaging.simp.handler.UserDestinationMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
-import org.springframework.messaging.simp.stomp.StompWebSocketHandler;
+import org.springframework.messaging.simp.stomp.StompProtocolHandler;
 import org.springframework.messaging.support.channel.ExecutorSubscribableChannel;
 import org.springframework.messaging.support.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.converter.MessageConverter;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.config.annotation.DefaultServletHandlerCo
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.sockjs.SockJsHttpRequestHandler;
 import org.springframework.web.socket.sockjs.SockJsService;
 import org.springframework.web.socket.sockjs.transport.handler.DefaultSockJsService;
@@ -47,7 +49,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	public SimpleUrlHandlerMapping handlerMapping() {
 
 		SockJsService sockJsService = new DefaultSockJsService(taskScheduler());
-		HttpRequestHandler requestHandler = new SockJsHttpRequestHandler(sockJsService, stompWebSocketHandler());
+		HttpRequestHandler requestHandler = new SockJsHttpRequestHandler(sockJsService, webSocketHandler());
 
 		SimpleUrlHandlerMapping hm = new SimpleUrlHandlerMapping();
 		hm.setOrder(-1);
@@ -55,14 +57,19 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return hm;
 	}
 
-	// WebSocketHandler for STOMP messages
+	// WebSocketHandler supporting STOMP messages
 
 	@Bean
-	public StompWebSocketHandler stompWebSocketHandler() {
-		StompWebSocketHandler handler = new StompWebSocketHandler(dispatchChannel());
-		handler.setUserQueueSuffixResolver(this.userQueueSuffixResolver);
-		webSocketHandlerChannel().subscribe(handler);
-		return handler;
+	public WebSocketHandler webSocketHandler() {
+
+		StompProtocolHandler stompHandler = new StompProtocolHandler();
+		stompHandler.setUserQueueSuffixResolver(this.userQueueSuffixResolver);
+
+		SubProtocolWebSocketHandler webSocketHandler = new SubProtocolWebSocketHandler(dispatchChannel());
+		webSocketHandler.setDefaultProtocolHandler(stompHandler);
+		webSocketHandlerChannel().subscribe(webSocketHandler);
+
+		return webSocketHandler;
 	}
 
 	// MessageHandler for processing messages by delegating to @Controller annotated methods
