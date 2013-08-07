@@ -14,7 +14,7 @@ Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framewor
 
 ### Tomcat 8
 
-At present Tomcat 8 is available as snapshots only (alpha release is forthcoming). Spring Framework 4.0 M2 release has been tested with [tomcat-8.0-20130718.155757-5](https://repository.apache.org/content/repositories/snapshots/org/apache/tomcat/tomcat/8.0-SNAPSHOT/tomcat-8.0-20130718.155757-5.tar.gz). When using a more recent snapshot, you may also have to switch to Spring Framework 4.0.0.BUILD-SNAPSHOT.
+Check the [Tomcat home page](http://tomcat.apache.org/) for the latest Tomcat 8 release, currently `RC1 alpha`. 
 
 After unzipping Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
