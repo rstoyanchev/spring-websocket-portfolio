@@ -30,7 +30,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.sockjs.SockJsHttpRequestHandler;
-import org.springframework.web.socket.sockjs.SockJsService;
 import org.springframework.web.socket.sockjs.transport.handler.DefaultSockJsService;
 
 
@@ -48,7 +47,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public SimpleUrlHandlerMapping handlerMapping() {
 
-		SockJsService sockJsService = new DefaultSockJsService(taskScheduler());
+		DefaultSockJsService sockJsService = new DefaultSockJsService(taskScheduler());
+		sockJsService.setDummySessionCookieEnabled(true);
 		HttpRequestHandler requestHandler = new SockJsHttpRequestHandler(sockJsService, webSocketHandler());
 
 		SimpleUrlHandlerMapping hm = new SimpleUrlHandlerMapping();
