@@ -22,7 +22,7 @@ Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index
 
 ### Jetty 9
 
-The easiest way to run on Jetty 9.0.4:
+The easiest way to run on Jetty 9 (currently 9.0.5):
 
     mvn jetty:run
 
