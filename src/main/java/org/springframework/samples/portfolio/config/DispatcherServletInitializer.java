@@ -27,13 +27,12 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-//		return null;
 		return new Class<?>[] { WebSecurityConfig.class };
 	}
 
 	@Override
 	protected Class<?>[] getServletConfigClasses() {
-		return new Class<?>[] { WebConfig.class };
+		return new Class<?>[] { WebConfig.class, WebSocketConfig.class };
 	}
 
 	@Override
@@ -48,8 +47,6 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
-		servletContext.setInitParameter("spring.profiles.active", "simple-broker");
-//		servletContext.setInitParameter("spring.profiles.active", "stomp-broker-relay");
 		super.onStartup(servletContext);
 	}
 

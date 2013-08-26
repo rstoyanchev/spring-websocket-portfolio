@@ -8,7 +8,7 @@ function ApplicationModel(stompClient) {
   self.notifications = ko.observableArray();
 
   self.connect = function() {
-    stompClient.connect('', '', function(frame) {
+    stompClient.connect('guest', 'guest', function(frame) {
 
       console.log('Connected ' + frame);
       var userName = frame.headers['user-name'];
