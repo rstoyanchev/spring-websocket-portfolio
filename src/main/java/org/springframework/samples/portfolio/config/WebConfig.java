@@ -92,8 +92,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	@Profile("simple-broker")
 	public SimpleBrokerMessageHandler simpleBrokerMessageHandler() {
-		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(webSocketHandlerChannel());
-		handler.setDestinationPrefixes(Arrays.asList("/topic/", "/queue/"));
+		SimpleBrokerMessageHandler handler = new SimpleBrokerMessageHandler(webSocketHandlerChannel(), Arrays.asList("/topic/", "/queue/"));
 		dispatchChannel().subscribe(handler);
 		return handler;
 	}
