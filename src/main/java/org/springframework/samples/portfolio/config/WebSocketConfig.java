@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void configureMessageBroker(MessageBrokerConfigurer configurer) {
 		configurer.enableStompBrokerRelay("/queue/", "/topic/");
-		configurer.setAnnotationMethodDestinationPrefixes("/app/");
+		configurer.setAnnotationMethodDestinationPrefixes("/app");
 	}
 
 }

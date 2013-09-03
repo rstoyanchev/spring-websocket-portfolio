@@ -14,7 +14,7 @@ Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framewor
 
 ### Tomcat 8
 
-Check the [Tomcat home page](http://tomcat.apache.org/) for the latest Tomcat 8 release, currently `RC1 alpha`. 
+Check the [Tomcat home page](http://tomcat.apache.org/) for the latest Tomcat 8 release. Prior to the upcoming `RC2 alpha` release it is recommended to use the [latest snapshot](https://repository.apache.org/content/repositories/snapshots/org/apache/tomcat/tomcat/8.0-SNAPSHOT/).
 
 After unzipping Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
