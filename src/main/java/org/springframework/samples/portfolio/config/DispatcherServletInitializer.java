@@ -16,10 +16,19 @@
 
 package org.springframework.samples.portfolio.config;
 
+import java.io.IOException;
+import java.security.Principal;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration.Dynamic;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -27,7 +36,8 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-		return new Class<?>[] { WebSecurityConfig.class };
+//		return new Class<?>[] { WebSecurityConfig.class };
+		return null;
 	}
 
 	@Override
@@ -48,6 +58,30 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
 		super.onStartup(servletContext);
+	}
+
+	@Override
+	protected Filter[] getServletFilters() {
+		return new Filter[] { new OncePerRequestFilter() {
+			@Override
+			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+					throws ServletException, IOException {
+
+				request = new HttpServletRequestWrapper(request) {
+					@Override
+					public Principal getUserPrincipal() {
+						return new Principal() {
+							@Override
+							public String getName() {
+								return "fabrice";
+							}
+						};
+					}
+				};
+
+				filterChain.doFilter(request, response);
+			}
+		}};
 	}
 
 }

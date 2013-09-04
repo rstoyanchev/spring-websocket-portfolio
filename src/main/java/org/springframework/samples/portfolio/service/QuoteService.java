@@ -46,7 +46,7 @@ public class QuoteService {
 		this.messagingTemplate = messagingTemplate;
 	}
 
-	@Scheduled(fixedDelay=1000)
+	@Scheduled(fixedDelay=10000)
 	public void sendQuotes() {
 		for (Quote quote : this.quoteGenerator.generateQuotes()) {
 			if (logger.isTraceEnabled()) {

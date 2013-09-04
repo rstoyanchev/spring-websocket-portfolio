@@ -18,16 +18,16 @@
 		<level value="debug" />
 	</logger>
 
-	<logger name="org.springframework.messaging.simp.stomp">
-		<level value="debug" />
-	</logger>
-
 	<logger name="org.springframework.web">
 		<level value="debug" />
 	</logger>
 
 	<logger name="org.springframework.web.socket">
 		<level value="debug" />
+	</logger>
+
+	<logger name="org.springframework.web.socket.sockjs.transport.handler.DefaultSockJsService">
+		<level value="trace" />
 	</logger>
 
 	<logger name="org.springframework.security">
