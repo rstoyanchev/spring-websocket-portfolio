@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Stock Trading Portfolio</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+
+  </head>
+  <body>
+
+    <button onclick="startFifty()">Start 50</button>
+  
+
+    <script src="assets/js/sockjs-0.3.4.js"></script>
+    <script src="assets/js/stomp.js"></script>
+
+    <script type="text/javascript">
+    
+function ApplicationModel(stompClient) {
+	  var self = this;
+	  
+	  self.connect = function() {
+	    stompClient.connect('guest', 'guest', function(frame) {
+
+	      // console.log('Connected ' + frame);
+	      var userName = frame.headers['user-name'];
+	      var queueSuffix = frame.headers['queue-suffix'];
+	      
+	      self.username = userName;
+
+	      stompClient.subscribe("/app/positions", function(message) {
+	    	  //console.log(JSON.parse(message.body));
+	      });
+	      stompClient.subscribe("/topic/price.stock.*", function(message) {
+	        //console.log(JSON.parse(message.body));
+	      });
+	      stompClient.subscribe("/queue/position-updates" + queueSuffix, function(message) {
+	        //console.log("Position update " + JSON.parse(message.body));
+	      });
+	      stompClient.subscribe("/queue/errors" + queueSuffix, function(message) {
+	        //console.log("Error " + message.body);
+	      });
+	    }, function(error) {
+	      console.log("STOMP protocol error " + error);
+	    });
+	  }
+	};
+
+// FF: about:config
+//	netwrok.http.max-connections (256)
+//  network.http.max-persistent-connections-per-proxy (32)
+//	network.http.max-persistent-connections-per-server (6)
+// 	network.websocket.max-connections (200)
+
+function startFifty() {
+	for (var i=1 ; i <= 50; i++) {
+  	var socket = new SockJS('/spring-websocket-portfolio/portfolio', undefined, { protocols_whitelist : ['xhr-streaming']});
+  	var stompClient = Stomp.over(socket);
+  	var appModel = new ApplicationModel(stompClient);
+  	appModel.connect();
+	}	
+}
+	
+    </script>
+
+  </body>
+</html>
