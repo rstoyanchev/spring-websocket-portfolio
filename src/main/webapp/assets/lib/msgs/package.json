@@ -1,0 +1,49 @@
+{
+	"name": "msgs",
+	"version": "0.4.0-pre",
+	"description": "Message oriented programming for JavaScript",
+	"keywords": ["msgs", "message", "channel", "integration", "eip", "enterprise integration patterns", "cujojs", "spring", "springsource"],
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://opensource.org/licenses/MIT"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/cujojs/msgs.git"
+	},
+	"bugs": "https://github.com/cujojs/msgs/issues",
+	"maintainers": [
+		{
+			"name": "Scott Andrews",
+			"email": "sandrews@gopivotal.com",
+			"web": "http://twitter.com/scothis"
+		}
+	],
+	"contributors": [
+		{
+			"name": "Mark Fisher",
+			"email": "mfisher@gopivotal.com"
+		}
+	],
+	"optionalDependencies": {
+		"when": "~2"
+	},
+	"devDependencies": {
+		"wire": "~0.10",
+		"sockjs-client": "~0.1",
+		"test-support": "~0.3",
+		"sinon": "~1.7",
+		"curl": "https://github.com/cujojs/curl/tarball/0.7.3",
+		"poly": "https://github.com/cujojs/poly/tarball/0.5.1"
+	},
+	"main": "./msgs",
+	"scripts": {
+		"test": "jshint . && buster test -g msgs:node",
+		"integration": "npm test && buster test -g msgs:integration",
+		"ci": "npm run-script integration && sauceme",
+		"start": "buster static -e browser",
+		"tunnel": "sauceme -m"
+	}
+}

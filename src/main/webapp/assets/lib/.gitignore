@@ -1,0 +1,13 @@
+/curl/bin
+/curl/docs
+/curl/test
+/html5shiv/build
+/html5shiv/test
+/poly/test
+/stomp/browsertests
+/stomp/doc
+/stomp/example
+/stomp/test
+/when/benchmark
+/when/docs
+/when/test

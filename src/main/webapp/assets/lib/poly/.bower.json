@@ -1,0 +1,14 @@
+{
+  "name": "poly",
+  "version": "0.5.2",
+  "homepage": "https://github.com/cujojs/poly",
+  "_release": "0.5.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.5.2",
+    "commit": "5994097eda25e94a1beffaa33a1689583bda65d4"
+  },
+  "_source": "git://github.com/cujojs/poly.git",
+  "_target": "~0.5",
+  "_originalSource": "poly"
+}
