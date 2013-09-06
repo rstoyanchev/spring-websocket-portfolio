@@ -1,0 +1,21 @@
+{
+  "name": "msgs",
+  "main": "./msgs.js",
+  "dependencies": {
+    "when": "~2"
+  },
+  "ignore": [
+    ".*",
+    "test"
+  ],
+  "homepage": "https://github.com/cujojs/msgs",
+  "_release": "50e44253be",
+  "_resolution": {
+    "type": "branch",
+    "branch": "dev",
+    "commit": "50e44253beffa94ce6e680577da342033b8cb7fd"
+  },
+  "_source": "git://github.com/cujojs/msgs.git",
+  "_target": "dev",
+  "_originalSource": "msgs"
+}

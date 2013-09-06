@@ -4,13 +4,8 @@
     <meta charset="utf-8">
     <title>Stock Trading Portfolio</title>
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-    <link href="assets/css/portfolio.css" rel="stylesheet">
-    <link href="assets/css/bootstrap.css" rel="stylesheet">
-
-    <!--[if lt IE 9]>
-    <script src="assets/js/html5shiv.js"></script>
-    <![endif]-->
-
+    <link href="assets/lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="assets/common/portfolio.css" rel="stylesheet">
   </head>
   <body>
 
@@ -18,108 +13,25 @@
       <div id="heading" class="masthead">
         <div class="pull-right">
           <span class="text-info" data-bind="text: username"><em></em></span>&nbsp;
-          <button data-bind="click: logout"><i class="icon-off"></i></button>
+          <button data-bind="click: logout" class="btn"><i class="icon-off"></i></button>
         </div>
         <h3 class="muted">Stock Trading Portfolio</h3>
       </div>
       <div id="main-content">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Ticker</th>
-              <th class="number">Price</th>
-              <th class="number">Change</th>
-              <th>%</th>
-              <th class="number">Shares</th>
-              <th class="number">Value</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody data-bind="foreach: portfolio().rows">
-            <tr>
-              <td data-bind="text: company"></td>
-              <td data-bind="text: ticker"></td>
-              <td data-bind="text: formattedPrice" class="number"></td>
-              <td data-bind="text: change, style: {color: change() < 0 ? 'red' : 'green'}" class="number"></td>
-              <td data-bind="html: arrow" class="icon"></td>
-              <td data-bind="text: shares" class="number"></td>
-              <td data-bind="text: formattedValue" class="number"></td>
-              <td class="trade-buttons">
-                <button class="btn btn-primary" data-bind="click: $root.trade().showBuy">Buy</button>
-                <button class="btn btn-primary" data-bind="click: $root.trade().showSell">Sell</button>
-              </td>
-             </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="5">Total</td>
-              <td data-bind="text: portfolio().totalShares" class="number"></td>
-              <td data-bind="text: portfolio().totalValue" class="number"></td>
-              <td></td>
-            </tr>
-          </tfoot>
-          <tbody></tbody>
-        </table>
-        <div class="alert alert-warning">
-          <h5>Notifications</h5>
-          <ul data-bind="foreach: notifications">
-            <li data-bind="text: notification"></li>
-          </ul>
-        </div>
-      </div>
-      <div id="trade-dialog" class="modal hide fade" tabindex="-1">
-        <div class="modal-body">
-          <form class="form-horizontal" data-bind="submit: trade().executeTrade">
-            <fieldset>
-              <legend>
-                <span data-bind="text: trade().action"></span>
-                <span data-bind="text: trade().currentRow().company"></span> Stock
-              </legend>
-            </fieldset>
-            <div class="control-group" data-bind="css: {error: trade().error()}">
-              <label class="control-label" for="inputShares">Shares</label>
-              <div class="controls">
-                <input id="inputShares" type="text" data-bind="value: trade().sharesToTrade">
-                <span class="help-inline" data-bind="text: trade().error">Please enter</span>
-              </div>
-            </div>
-            <div class="control-group">
-              <div class="controls">
-                <label class="checkbox"><input type="checkbox" data-bind="checked: trade().suppressValidation">
-                  Suppress client-side validation</label>
-              </div>
-            </div>
-            <button class="btn" data-dismiss="modal">Close</button>
-            <button class="btn btn-primary" type="submit">
-              <span data-bind="text: trade().action"></span>
-            </button>
-          </form>
-        </div>
+        <p>There are two flavors of this app availble: one build on stomp.js, and the other build with cujoJS</p>
+        <ul>
+          <li>
+            <p>The <a href="http://cujojs.com">cujoJS</a> version leverages AMD modules loaded with <a href="https://github.com/cujojs/curl">curl.js</a> and a message bus <a href="https://github.com/cujojs/curl">msgs.js</a></p>
+            <p><a href="cujojs">Take me to the <strong>cujoJS</strong> version</a></p>
+          </li>
+          <li>
+            <p>The traditional version uses script tags to load the application dependencies and <a href="http://jmesnil.net/stomp-websocket/doc/">stomp.js</a> as the messaging layer.</p>
+            <p><a href="traditional">Take me to the <strong>traditional</strong> version</a></p>
+          </li>
+        </ul>
+        <p>Both flavors of the application utilize <a href="http://knockoutjs.com/">Knockout.js</a> for data binding and <a href="http://sockjs.org">SockJS</a> as a WebSocket polyfill. <a href="http://stomp.github.io/">STOMP</a> is used as a higher level messaging protocol on top of a raw WebSocket.  <a href="http://getbootstrap.com/">Twitter Bootstrap</a> is used for styling.</p>
       </div>
     </div>
-
-    <!-- 3rd party -->
-    <script src="assets/js/jquery-1.8.3.js"></script>
-    <script src="assets/js/bootstrap.js"></script>
-    <script src="assets/js/knockout-2.3.0.js"></script>
-    <script src="assets/js/sockjs-0.3.4.js"></script>
-    <script src="assets/js/stomp.js"></script>
-
-    <!-- application -->
-    <script src="assets/js/portfolio.js"></script>
-    <script type="text/javascript">
-      (function() {
-        var socket = new SockJS('/spring-websocket-portfolio/portfolio');
-        var stompClient = Stomp.over(socket);
-
-        var appModel = new ApplicationModel(stompClient);
-        ko.applyBindings(appModel);
-
-        appModel.connect();
-        appModel.pushNotification("Trade results take a 2-3 second simulated delay. Notifications will appear.");
-      })();
-    </script>
 
   </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "spring-websocket-portfolio",
+  "version": "1.0.0-SNAPSHOT",
+  "dependencies": {
+    "curl": "~0.8",
+    "msgs": "#dev",
+    "poly": "~0.5",
+    "sockjs": "~0.3",
+    "knockout": "git://github.com/bowerjs/knockout.git#~2.3",
+    "bootstrap": "git://github.com/bowerjs/bootstrap.git#~2.3",
+    "jquery": "git://github.com/bowerjs/jquery.git#~1.8",
+    "html5shiv": "~3.6",
+    "stomp": "git://github.com/jmesnil/stomp-websocket.git#~2.0"
+  },
+  "ignore": ["test"]
+}
