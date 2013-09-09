@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.annotation.ReplyToUser;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeEvent;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
@@ -64,7 +64,7 @@ public class PortfolioController {
 	}
 
 	@MessageExceptionHandler
-	@ReplyToUser(value="/queue/errors")
+	@SendToUser(value="/queue/errors")
 	public String handleException(Throwable exception) {
 		return exception.getMessage();
 	}
