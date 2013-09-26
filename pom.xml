@@ -61,14 +61,14 @@
 		<dependency>
 			<groupId>org.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
-			<version>1.0.0.M2</version>
+			<version>1.0.0.M3</version>
 		</dependency>
 
 		<!-- Required when the "stomp-broker-relay" profile is enabled -->
 		<dependency>
 			<groupId>org.projectreactor</groupId>
 			<artifactId>reactor-tcp</artifactId>
-			<version>1.0.0.M2</version>
+			<version>1.0.0.M3</version>
 		</dependency>
 
 		<dependency>
