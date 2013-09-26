@@ -17,7 +17,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/portfolio").withSockJS();
+		registry.addEndpoint("/portfolio").withSockJS()
+			.setDummySessionCookieEnabled(true);
 	}
 
 	@Override
