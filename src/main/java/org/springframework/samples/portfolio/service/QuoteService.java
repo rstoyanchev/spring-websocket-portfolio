@@ -22,17 +22,20 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.core.MessageSendingOperations;
+import org.springframework.messaging.simp.BrokerAvailabilityEvent;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class QuoteService {
+public class QuoteService implements ApplicationListener<BrokerAvailabilityEvent> {
 
 	private static Log logger = LogFactory.getLog(QuoteService.class);
 
@@ -40,10 +43,17 @@ public class QuoteService {
 
 	private final StockQuoteGenerator quoteGenerator = new StockQuoteGenerator();
 
+	private AtomicBoolean brokerAvailable = new AtomicBoolean();
+
 
 	@Autowired
 	public QuoteService(MessageSendingOperations<String> messagingTemplate) {
 		this.messagingTemplate = messagingTemplate;
+	}
+
+	@Override
+	public void onApplicationEvent(BrokerAvailabilityEvent event) {
+		this.brokerAvailable.set(event.isBrokerAvailable());
 	}
 
 	@Scheduled(fixedDelay=1000)
@@ -52,7 +62,9 @@ public class QuoteService {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Sending quote " + quote);
 			}
-			this.messagingTemplate.convertAndSend("/topic/price.stock." + quote.getTicker(), quote);
+			if (this.brokerAvailable.get()) {
+				this.messagingTemplate.convertAndSend("/topic/price.stock." + quote.getTicker(), quote);
+			}
 		}
 	}
 
@@ -94,4 +106,5 @@ public class QuoteService {
 		}
 
 	}
+
 }
