@@ -12,13 +12,15 @@ Server-side runs on `Tomcat 8`, `Jetty 9.0.4`, or `Glassfish 4.0`. Other servlet
 
 Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framework-4-0-m2-websocket-messaging-architectures/) introducing these features.
 
-### Tomcat 8
+### Tomcat 7/8
 
-The app has been tested with this [Tomcat 8 snapshot](https://repository.apache.org/content/repositories/snapshots/org/apache/tomcat/tomcat/8.0-SNAPSHOT/tomcat-8.0-20130815.225136-6.zip). We are also expecting an RC2 release soon as well as a backport to Tomcat 7.
+The app has been tested with this `Tomcat 8 RC5` as well as `Tomcat 7.0.47` which includes a backport of the Tomcat 8 WebSocket support.
 
 After unzipping Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
+
+If you use Tomcat 7.0.47+ instead, you can also change the Servlet API dependency in pom.xml to 3.0.1, which will allow deploying to Tomcat from within Eclipse.
 
 ### Jetty 9
 
