@@ -30,7 +30,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-			.authorizeUrls()
+			.csrf().disable() //TODO Refactor login form
+			.authorizeRequests()
 				.antMatchers("/assets/**").permitAll()
 				.anyRequest().authenticated()
 				.and()
@@ -41,14 +42,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.and()
 			.formLogin()
 				.defaultSuccessUrl("/index.html")
-				.loginUrl("/login.html")
+				.loginPage("/login.html")
 				.failureUrl("/login.html?error")
 				.permitAll();
 	}
 
+
 	@Override
-	protected void registerAuthentication(AuthenticationManagerBuilder auth)
-			throws Exception {
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth
 			.inMemoryAuthentication()
 				.withUser("fabrice").password("fab123").roles("USER").and()
