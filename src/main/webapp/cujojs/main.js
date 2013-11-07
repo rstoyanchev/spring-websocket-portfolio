@@ -29,10 +29,7 @@ define(function (require) {
 		bridge.controlBus.on('connected', function (connected, headers) {
 			console.log('Connected', headers);
 
-			var userName = headers['user-name'];
-			var queueSuffix = headers['queue-suffix'];
-
-			app.username(userName);
+			app.username(headers['user-name']);
 
 			bus.on('remote!/app/positions', function(positions) {
 				portfolio().loadPositions(JSON.parse(positions));
@@ -40,11 +37,11 @@ define(function (require) {
 			bus.on('remote!/topic/price.stock.*', function(quote) {
 				portfolio().processQuote(JSON.parse(quote));
 			});
-			bus.on('remote!/queue/position-updates' + queueSuffix, function(position) {
+			bus.on('remote!/user/queue/position-updates', function(position) {
 				app.pushNotification("Position update " + position);
 				portfolio().updatePosition(JSON.parse(position));
 			});
-			bus.on('remote!/queue/errors' + queueSuffix, function(error) {
+			bus.on('remote!/user/queue/errors', function(error) {
 				app.pushNotification("Error " + error);
 			});
 		});

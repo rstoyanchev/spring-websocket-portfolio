@@ -11,10 +11,7 @@ function ApplicationModel(stompClient) {
     stompClient.connect('', '', function(frame) {
 
       console.log('Connected ' + frame);
-      var userName = frame.headers['user-name'];
-      var queueSuffix = frame.headers['queue-suffix'];
-      
-      self.username(userName);
+      self.username(frame.headers['user-name']);
 
       stompClient.subscribe("/app/positions", function(message) {
         self.portfolio().loadPositions(JSON.parse(message.body));
@@ -22,11 +19,11 @@ function ApplicationModel(stompClient) {
       stompClient.subscribe("/topic/price.stock.*", function(message) {
         self.portfolio().processQuote(JSON.parse(message.body));
       });
-      stompClient.subscribe("/queue/position-updates" + queueSuffix, function(message) {
+      stompClient.subscribe("/user/queue/position-updates", function(message) {
         self.pushNotification("Position update " + message.body);
         self.portfolio().updatePosition(JSON.parse(message.body));
       });
-      stompClient.subscribe("/queue/errors" + queueSuffix, function(message) {
+      stompClient.subscribe("/user/queue/errors", function(message) {
         self.pushNotification("Error " + message.body);
       });
     }, function(error) {
