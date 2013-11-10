@@ -24,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	public void configureMessageBroker(MessageBrokerConfigurer configurer) {
 		configurer.enableSimpleBroker("/queue/", "/topic/");
 //		configurer.enableStompBrokerRelay("/queue/", "/topic/");
-		configurer.setAnnotationMethodDestinationPrefixes("/app");
+		configurer.setApplicationDestinationPrefixes("/app");
 	}
 
 }
