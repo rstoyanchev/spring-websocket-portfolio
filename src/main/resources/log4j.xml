@@ -18,10 +18,6 @@
 		<level value="debug" />
 	</logger>
 
-	<logger name="org.springframework.messaging.simp.stomp">
-		<level value="debug" />
-	</logger>
-
 	<logger name="org.springframework.web">
 		<level value="debug" />
 	</logger>

@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>org.projectreactor</groupId>
 			<artifactId>reactor-tcp</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.0.0.RELEASE</version>
 		</dependency>
 
 		<dependency>
@@ -184,7 +184,7 @@
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.0.4.v20130625</version>
+				<version>9.0.6.v20130930</version>
 				<configuration>
 					<webApp>
 						<contextPath>/${project.artifactId}</contextPath>

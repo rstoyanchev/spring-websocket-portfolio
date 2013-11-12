@@ -73,7 +73,7 @@ public class TradeService {
 
 		for (TradeResult result : this.tradeResults) {
 			if (System.currentTimeMillis() >= (result.timestamp + 1500)) {
-				logger.debug("Position update: " + result.position);
+				logger.debug("Sending position update: " + result.position);
 				this.messagingTemplate.convertAndSendToUser(result.user, "/queue/position-updates", result.position);
 				this.tradeResults.remove(result);
 			}
