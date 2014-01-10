@@ -15,14 +15,22 @@
 	</logger>
 	
 	<logger name="org.springframework.web">
-		<level value="debug" />
+		<level value="info" />
 	</logger>
 
-	<logger name="org.springframework.websocket">
+	<logger name="org.springframework.web.socket">
 		<level value="trace" />
 	</logger>
 
-	<root>
+    <logger name="org.springframework.messaging">
+        <level value="trace" />
+    </logger>
+
+    <logger name="org.springframework.security">
+        <level value="info" />
+    </logger>
+
+    <root>
 		<priority value="warn" />
 		<appender-ref ref="console" />
 	</root>

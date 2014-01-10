@@ -2,6 +2,7 @@ package org.springframework.samples.portfolio.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -16,10 +17,14 @@ import java.util.List;
 
 
 @Configuration
-@EnableWebSocketMessageBroker
 @EnableScheduling
-@ComponentScan(basePackages="org.springframework.samples")
+@ComponentScan(
+		basePackages="org.springframework.samples",
+		excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION, value = Configuration.class)
+)
+@EnableWebSocketMessageBroker
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
