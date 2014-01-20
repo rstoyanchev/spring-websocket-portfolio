@@ -14,7 +14,7 @@ Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framewor
 
 ### Tomcat 7/8
 
-The app has been tested with this `Tomcat 8 RC5` as well as `Tomcat 7.0.47` which includes a backport of the Tomcat 8 WebSocket support.
+The app has been tested with this `Tomcat 8 RC10` as well as `Tomcat 7.0.47` which includes a backport of the Tomcat 8 WebSocket support.
 
 After unzipping Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
@@ -47,6 +47,12 @@ Set `GLASSFISH4_HOME` as an environment variable and use [deployGlassfish.sh](ht
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
+### WildFly/Undertow
+
+Support available in 4.0.1.BUILD-SNAPSHOT. Requires WildFly 8 CR1 with underlying Undertow upgraded to Beta32 (WildFly 8 CR1 comes with Beta30 by default)
+
+Details TODO...
+
 
 ### Using a Message Broker
 
@@ -55,6 +61,7 @@ Out of the box, a _"simple" message broker_ is used to send messages to subscrib
 1.   Install and start the message broker. For RabbitMQ make sure you've also installed the [RabbitMQ STOMP plugin](http://www.rabbitmq.com/stomp.html). For ActiveMQ you need to configure a [STOMP transport connnector](http://activemq.apache.org/stomp.html).
 2.   Use the `MessageBrokerConfigurer` in [WebSocketConfig.java](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/src/main/java/org/springframework/samples/portfolio/config/WebSocketConfig.java) to enable the STOMP broker relay instead of the simple broker.
 3.   You may also need to configure additional STOMP broker relay properties such as `relayHost`, `relayPort`, `systemLogin`, `systemPassword`, depending on your message broker. The default settings should work for RabbitMQ and ActiveMQ.
+
 
 ### Logging
 
