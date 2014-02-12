@@ -47,9 +47,13 @@ Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index
 
 ### WildFly/Undertow
 
-Support available in 4.0.1.BUILD-SNAPSHOT. Requires WildFly 8 CR1 with underlying Undertow upgraded to Beta32 (WildFly 8 CR1 comes with Beta30 by default)
+Support available in 4.0.1.BUILD-SNAPSHOT. Requires WildFly 8.0.0.Final.
 
-Details TODO...
+Unzip the WildFly server.
+
+Set `WILDFLY_HOME` as an environment variable and use [deployWildFly.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployWildFly.sh) in this directory.
+
+Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
 
 ### Using a Message Broker
