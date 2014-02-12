@@ -47,7 +47,7 @@ Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index
 
 ### WildFly/Undertow
 
-Support available in 4.0.1.BUILD-SNAPSHOT. Requires WildFly 8.0.0.Final.
+Support available startin with Spring Framework 4.0.1. Requires WildFly 8.0.0.Final.
 
 Unzip the WildFly server.
 
