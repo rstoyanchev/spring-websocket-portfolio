@@ -1,7 +1,0 @@
-pkg
-.settings
-bin
-data
-dist/test
-TODO.txt
-node_modules
