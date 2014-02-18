@@ -10,7 +10,7 @@
     "bootstrap": "git://github.com/bowerjs/bootstrap.git#~2.3",
     "jquery": "git://github.com/bowerjs/jquery.git#~1.8",
     "html5shiv": "~3.6",
-    "stomp": "git://github.com/jmesnil/stomp-websocket.git#~2.0"
+    "stomp": "stomp-websocket#~2.3.0"
   },
   "ignore": ["test"]
 }
