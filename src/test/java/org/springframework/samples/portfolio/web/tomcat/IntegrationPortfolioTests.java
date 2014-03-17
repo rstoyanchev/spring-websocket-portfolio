@@ -31,6 +31,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
 import org.springframework.samples.portfolio.service.Trade;
+import org.springframework.samples.portfolio.web.StompWebSocketClient;
+import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -115,7 +117,7 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		final TestStompClient stompClient = new TestStompClient(
+		final StompWebSocketClient stompClient = new StompWebSocketClient(
 				new URI("ws://localhost:" + port + "/portfolio/websocket"), this.headers);
 
 		stompClient.connect(new MessageHandler() {
@@ -159,7 +161,7 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		final TestStompClient stompClient = new TestStompClient(
+		final StompWebSocketClient stompClient = new StompWebSocketClient(
 				new URI("ws://localhost:" + port + "/portfolio/websocket"), this.headers);
 
 		stompClient.connect(new MessageHandler() {

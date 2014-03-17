@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web.tomcat;
+package org.springframework.samples.portfolio.web;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,9 +57,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Rossen Stoyanchev
  */
-public class TestStompClient {
+public class StompWebSocketClient {
 
-	private static Log logger = LogFactory.getLog(TestStompClient.class);
+	private static Log logger = LogFactory.getLog(StompWebSocketClient.class);
 
 	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
@@ -81,7 +81,7 @@ public class TestStompClient {
 	private MessageConverter messageConverter = new MappingJackson2MessageConverter();
 
 
-	public TestStompClient(URI handshakeUri, WebSocketHttpHeaders handshakeHeaders) {
+	public StompWebSocketClient(URI handshakeUri, WebSocketHttpHeaders handshakeHeaders) {
 		this.handshakeUri = handshakeUri;
 		this.handshakeHeaders = handshakeHeaders;
 	}
@@ -195,7 +195,7 @@ public class TestStompClient {
 			}
 			else if (StompCommand.MESSAGE.equals(headers.getCommand())) {
 				String subscriptionId = headers.getSubscriptionId();
-				MessageHandler subscriptionHandler = TestStompClient.this.subscriptionHandlers.get(subscriptionId);
+				MessageHandler subscriptionHandler = StompWebSocketClient.this.subscriptionHandlers.get(subscriptionId);
 				if (subscriptionHandler == null) {
 					logger.error("No subscribed handler for message: " + message);
 				}
