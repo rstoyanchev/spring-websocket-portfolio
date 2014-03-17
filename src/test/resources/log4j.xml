@@ -11,7 +11,7 @@
 	</appender>
 	
 	<logger name="org.springframework.samples">
-		<level value="debug" />
+		<level value="info" />
 	</logger>
 	
 	<logger name="org.springframework.web">
@@ -23,7 +23,7 @@
 	</logger>
 
     <logger name="org.springframework.messaging">
-        <level value="trace" />
+        <level value="info" />
     </logger>
 
     <logger name="org.springframework.security">
