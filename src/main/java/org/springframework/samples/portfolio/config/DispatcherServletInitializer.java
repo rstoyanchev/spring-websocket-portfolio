@@ -46,9 +46,4 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 		registration.setAsyncSupported(true);
 	}
 
-	@Override
-	public void onStartup(ServletContext servletContext) throws ServletException {
-		super.onStartup(servletContext);
-	}
-
 }

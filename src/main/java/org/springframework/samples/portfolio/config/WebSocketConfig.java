@@ -33,11 +33,12 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
+		registration.taskExecutor().corePoolSize(4);
 	}
 
 	@Override
 	public void configureClientOutboundChannel(ChannelRegistration registration) {
-		registration.taskExecutor().corePoolSize(4).maxPoolSize(10);
+		registration.taskExecutor().corePoolSize(4);
 	}
 
 	@Override
