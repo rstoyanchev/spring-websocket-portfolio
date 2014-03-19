@@ -26,13 +26,14 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
 import org.springframework.samples.portfolio.service.Trade;
-import org.springframework.samples.portfolio.web.StompWebSocketClient;
+import org.springframework.samples.portfolio.web.StompMessageHandler;
+import org.springframework.samples.portfolio.web.StompSession;
 import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
+import org.springframework.samples.portfolio.web.WebSocketStompClient;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -41,6 +42,7 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketHttpHeaders;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.io.IOException;
 import java.net.URI;
@@ -117,42 +119,60 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		final StompWebSocketClient stompClient = new StompWebSocketClient(
-				new URI("ws://localhost:" + port + "/portfolio/websocket"), this.headers);
+		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
 
-		stompClient.connect(new MessageHandler() {
+		stompClient.connect(new StompMessageHandler() {
+
+			private StompSession stompSession;
+
 			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				stompClient.subscribe("/app/positions", new MessageHandler() {
-					@Override
-					public void handleMessage(Message<?> reply) throws MessagingException {
-						logger.debug("Got " + new String((byte[]) reply.getPayload()));
-						try {
-							String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
-							new JsonPathExpectationsHelper("$[0].company").assertValue(json, "Citrix Systems, Inc.");
-							new JsonPathExpectationsHelper("$[1].company").assertValue(json, "Dell Inc.");
-							new JsonPathExpectationsHelper("$[2].company").assertValue(json, "Microsoft");
-							new JsonPathExpectationsHelper("$[3].company").assertValue(json, "Oracle");
-						}
-						catch (Throwable t) {
-							failure.set(t);
-						}
-						finally {
-							latch.countDown();
-						}
-					}
-				});
+			public void afterConnected(StompSession stompSession, StompHeaderAccessor headers) {
+				stompSession.subscribe("/app/positions", null);
+				this.stompSession = stompSession;
 			}
+			@Override
+			public void handleMessage(Message<byte[]> message) {
+				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
+				if (!"/app/positions".equals(headers.getDestination())) {
+					 failure.set(new IllegalStateException("Unexpected message: " + message));
+				}
+				logger.debug("Got " + new String((byte[]) message.getPayload()));
+				try {
+					String json = new String((byte[]) message.getPayload(), Charset.forName("UTF-8"));
+					new JsonPathExpectationsHelper("$[0].company").assertValue(json, "Citrix Systems, Inc.");
+					new JsonPathExpectationsHelper("$[1].company").assertValue(json, "Dell Inc.");
+					new JsonPathExpectationsHelper("$[2].company").assertValue(json, "Microsoft");
+					new JsonPathExpectationsHelper("$[3].company").assertValue(json, "Oracle");
+				}
+				catch (Throwable t) {
+					failure.set(t);
+				}
+				finally {
+					latch.countDown();
+					this.stompSession.disconnect();
+				}
+			}
+
+			@Override
+			public void handleError(Message<byte[]> message) {
+				failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
+			}
+
+			@Override
+			public void handleReceipt(String receiptId) {}
+
+			@Override
+			public void afterDisconnected() {}
 		});
+
+		if (failure.get() != null) {
+			throw new AssertionError("", failure.get());
+		}
 
 		if (!latch.await(5, TimeUnit.SECONDS)) {
 			fail("Portfolio positions not received");
 		}
-		else if (failure.get() != null) {
-			throw new AssertionError("", failure.get());
-		}
-
-		stompClient.disconnect();
 	}
 
 	@Test
@@ -161,30 +181,18 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		final StompWebSocketClient stompClient = new StompWebSocketClient(
-				new URI("ws://localhost:" + port + "/portfolio/websocket"), this.headers);
+		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
 
-		stompClient.connect(new MessageHandler() {
+		stompClient.connect(new StompMessageHandler() {
+
+			private StompSession stompSession;
+
 			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
+			public void afterConnected(StompSession stompSession, StompHeaderAccessor headers) {
 
-				stompClient.subscribe("/user/queue/position-updates", new MessageHandler() {
-					@Override
-					public void handleMessage(Message<?> reply) throws MessagingException {
-						logger.debug("Got " + new String((byte[]) reply.getPayload()));
-						try {
-							String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
-							new JsonPathExpectationsHelper("$.shares").assertValue(json, 75);
-							new JsonPathExpectationsHelper("$.company").assertValue(json, "Dell Inc.");
-						}
-						catch (Throwable t) {
-							failure.set(t);
-						}
-						finally {
-							latch.countDown();
-						}
-					}
-				});
+				this.stompSession = stompSession;
+				this.stompSession.subscribe("/user/queue/position-updates", null);
 
 				try {
 					Trade trade = new Trade();
@@ -192,13 +200,45 @@ public class IntegrationPortfolioTests {
 					trade.setTicker("DELL");
 					trade.setShares(25);
 
-					stompClient.send("/app/trade", trade);
+					this.stompSession.send("/app/trade", trade);
 				}
 				catch (Throwable t) {
 					failure.set(t);
 					latch.countDown();
 				}
 			}
+
+			@Override
+			public void handleMessage(Message<byte[]> message) {
+				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
+				if (!"/user/queue/position-updates".equals(headers.getDestination())) {
+					failure.set(new IllegalStateException("Unexpected message: " + message));
+				}
+				logger.debug("Got " + new String((byte[]) message.getPayload()));
+				try {
+					String json = new String((byte[]) message.getPayload(), Charset.forName("UTF-8"));
+					new JsonPathExpectationsHelper("$.shares").assertValue(json, 75);
+					new JsonPathExpectationsHelper("$.company").assertValue(json, "Dell Inc.");
+				}
+				catch (Throwable t) {
+					failure.set(t);
+				}
+				finally {
+					latch.countDown();
+					this.stompSession.disconnect();
+				}
+			}
+
+			@Override
+			public void handleError(Message<byte[]> message) {
+				failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
+			}
+
+			@Override
+			public void handleReceipt(String receiptId) {}
+
+			@Override
+			public void afterDisconnected() {}
 		});
 
 		if (!latch.await(5, TimeUnit.SECONDS)) {
@@ -207,8 +247,6 @@ public class IntegrationPortfolioTests {
 		else if (failure.get() != null) {
 			throw new AssertionError("", failure.get());
 		}
-
-		stompClient.disconnect();
 	}
 
 

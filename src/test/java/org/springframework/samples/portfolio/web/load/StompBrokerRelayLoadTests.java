@@ -90,7 +90,7 @@ public class StompBrokerRelayLoadTests {
 
 	@Autowired private CountDownLatch brokerAvailabilityLatch;
 
-	StopWatch stopWatch;
+	private StopWatch stopWatch;
 
 
 	@Before
