@@ -42,7 +42,6 @@ import org.springframework.samples.portfolio.web.StompSession;
 import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
 import org.springframework.samples.portfolio.web.WebSocketStompClient;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,10 +62,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -85,7 +82,7 @@ public class StompBrokerRelayWebSocketLoadTests {
 
 	private static TomcatWebSocketTestServer server;
 
-	private ThreadPoolTaskExecutor clientConnectTaskExecutor;
+	private ThreadPoolTaskExecutor connectExecutor;
 
 	private StopWatch stopWatch;
 
@@ -127,14 +124,14 @@ public class StompBrokerRelayWebSocketLoadTests {
 	@Before
 	public void setup() {
 		this.stopWatch = new StopWatch("STOMP Broker Relay WebSocket Load Tests");
-		this.clientConnectTaskExecutor = new ThreadPoolTaskExecutor();
-		this.clientConnectTaskExecutor.setCorePoolSize(100);
-		this.clientConnectTaskExecutor.afterPropertiesSet();
+		this.connectExecutor = new ThreadPoolTaskExecutor();
+		this.connectExecutor.setCorePoolSize(25);
+		this.connectExecutor.afterPropertiesSet();
 	}
 
 	@After
 	public void teardown() {
-		this.clientConnectTaskExecutor.shutdown();
+		this.connectExecutor.shutdown();
 	}
 
 
@@ -152,12 +149,7 @@ public class StompBrokerRelayWebSocketLoadTests {
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
 		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
-		webSocketClient.setTaskExecutor(this.clientConnectTaskExecutor);
-
-		System.out.println("Sleeping 20");
-		Thread.sleep(20000);
-		System.out.println("Sleeping 5");
-		Thread.sleep(5000);
+		webSocketClient.setTaskExecutor(this.connectExecutor);
 
 		URI uri = new URI("ws://localhost:" + port + "/stomp/websocket");
 		WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, webSocketClient);
@@ -269,8 +261,6 @@ public class StompBrokerRelayWebSocketLoadTests {
 
 		this.stopWatch.stop();
 		System.out.println("(" + this.stopWatch.getLastTaskTimeMillis() + " millis)");
-
-		System.in.read();
 	}
 
 

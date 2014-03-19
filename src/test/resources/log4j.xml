@@ -15,15 +15,15 @@
 	</logger>
 	
 	<logger name="org.springframework.web">
-		<level value="info" />
+		<level value="warn" />
 	</logger>
 
 	<logger name="org.springframework.web.socket">
-		<level value="trace" />
+		<level value="info" />
 	</logger>
 
     <logger name="org.springframework.messaging">
-        <level value="info" />
+        <level value="warn" />
     </logger>
 
     <logger name="org.springframework.security">
