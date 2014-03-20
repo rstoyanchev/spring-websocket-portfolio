@@ -82,8 +82,6 @@ public class StompBrokerRelayWebSocketLoadTests {
 
 	private static TomcatWebSocketTestServer server;
 
-	private ThreadPoolTaskExecutor connectExecutor;
-
 	private StopWatch stopWatch;
 
 
@@ -124,14 +122,6 @@ public class StompBrokerRelayWebSocketLoadTests {
 	@Before
 	public void setup() {
 		this.stopWatch = new StopWatch("STOMP Broker Relay WebSocket Load Tests");
-		this.connectExecutor = new ThreadPoolTaskExecutor();
-		this.connectExecutor.setCorePoolSize(25);
-		this.connectExecutor.afterPropertiesSet();
-	}
-
-	@After
-	public void teardown() {
-		this.connectExecutor.shutdown();
 	}
 
 
@@ -148,11 +138,8 @@ public class StompBrokerRelayWebSocketLoadTests {
 
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
-		webSocketClient.setTaskExecutor(this.connectExecutor);
-
 		URI uri = new URI("ws://localhost:" + port + "/stomp/websocket");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, webSocketClient);
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, new StandardWebSocketClient());
 		stompClient.setMessageConverter(new StringMessageConverter());
 
 		System.out.print("Connecting and subscribing " + numberOfUsers + " users ");
@@ -317,7 +304,7 @@ public class StompBrokerRelayWebSocketLoadTests {
 					messageCounter.handleMessage(message);
 					return super.preSend(message, channel);
 				}
-			}).taskExecutor().corePoolSize(4);
+			});
 		}
 
 		@Override
@@ -328,7 +315,7 @@ public class StompBrokerRelayWebSocketLoadTests {
 					messageCounter.handleMessage(message);
 					return super.preSend(message, channel);
 				}
-			}).taskExecutor().corePoolSize(4);
+			});
 		}
 
 		@Override
