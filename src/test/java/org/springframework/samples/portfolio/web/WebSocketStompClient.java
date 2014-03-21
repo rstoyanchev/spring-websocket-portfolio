@@ -65,7 +65,7 @@ public class WebSocketStompClient implements StompClient {
 	@Override
 	public void connect(StompMessageHandler stompMessageHandler) {
 		try {
-			StompWebSocketHandler webSocketHandler = new StompWebSocketHandler(stompMessageHandler);
+			StompWebSocketHandler webSocketHandler = new StompWebSocketHandler(stompMessageHandler, this.messageConverter);
 			this.webSocketClient.doHandshake(webSocketHandler, this.headers, this.uri).get();
 		}
 		catch (Exception e) {

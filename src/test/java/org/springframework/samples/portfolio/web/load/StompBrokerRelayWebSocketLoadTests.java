@@ -29,6 +29,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -42,6 +43,7 @@ import org.springframework.samples.portfolio.web.StompSession;
 import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
 import org.springframework.samples.portfolio.web.WebSocketStompClient;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,7 +77,15 @@ import static org.junit.Assert.fail;
 
 public class StompBrokerRelayWebSocketLoadTests {
 
-	private static final StringMessageConverter MESSAGE_CONVERTER = new StringMessageConverter();
+	private static final StringMessageConverter MESSAGE_CONVERTER;
+
+	static {
+		DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+		resolver.setDefaultMimeType(MimeTypeUtils.TEXT_PLAIN);
+
+		MESSAGE_CONVERTER = new StringMessageConverter();
+		MESSAGE_CONVERTER.setContentTypeResolver(resolver);
+	}
 
 
 	private static int port;
@@ -320,7 +330,7 @@ public class StompBrokerRelayWebSocketLoadTests {
 
 		@Override
 		public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-			messageConverters.add(new StringMessageConverter());
+			messageConverters.add(MESSAGE_CONVERTER);
 			return false;
 		}
 
