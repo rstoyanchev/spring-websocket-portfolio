@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TestMessageHandler implements MessageHandler {
 
-	private final BlockingQueue<Message<?>> messages = new ArrayBlockingQueue<>(10000);
+	private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
 	private final List<String> destinationPatterns = new ArrayList<>();
 
