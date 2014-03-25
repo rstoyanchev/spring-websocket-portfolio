@@ -37,6 +37,7 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class WebSocketStompClient implements StompClient {
 
@@ -117,30 +118,32 @@ public class WebSocketStompClient implements StompClient {
 		protected void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
 
 			ByteBuffer payload = ByteBuffer.wrap(textMessage.getPayload().getBytes(UTF_8));
-			Message<byte[]> message = this.decoder.decode(payload);
-			if (message == null) {
+			List<Message<byte[]>> messages = this.decoder.decode(payload);
+			if (messages == null) {
 				logger.error("Incomplete/invalid message received");
 			}
 
-			StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
-			if (StompCommand.CONNECTED.equals(headers.getCommand())) {
-				WebSocketStompSession stompSession = new WebSocketStompSession(session, this.messageConverter);
-				this.stompMessageHandler.afterConnected(stompSession, headers);
-			}
-			else if (StompCommand.MESSAGE.equals(headers.getCommand())) {
-				this.stompMessageHandler.handleMessage(message);
-			}
-			else if (StompCommand.RECEIPT.equals(headers.getCommand())) {
-				this.stompMessageHandler.handleReceipt(headers.getReceiptId());
-			}
-			else if (StompCommand.ERROR.equals(headers.getCommand())) {
-				this.stompMessageHandler.handleError(message);
-			}
-			else if (StompCommand.ERROR.equals(headers.getCommand())) {
-				this.stompMessageHandler.afterDisconnected();
-			}
-			else {
-				logger.debug("Unhandled message " + message);
+			for (Message message : messages) {
+				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
+				if (StompCommand.CONNECTED.equals(headers.getCommand())) {
+					WebSocketStompSession stompSession = new WebSocketStompSession(session, this.messageConverter);
+					this.stompMessageHandler.afterConnected(stompSession, headers);
+				}
+				else if (StompCommand.MESSAGE.equals(headers.getCommand())) {
+					this.stompMessageHandler.handleMessage(message);
+				}
+				else if (StompCommand.RECEIPT.equals(headers.getCommand())) {
+					this.stompMessageHandler.handleReceipt(headers.getReceiptId());
+				}
+				else if (StompCommand.ERROR.equals(headers.getCommand())) {
+					this.stompMessageHandler.handleError(message);
+				}
+				else if (StompCommand.ERROR.equals(headers.getCommand())) {
+					this.stompMessageHandler.afterDisconnected();
+				}
+				else {
+					logger.debug("Unhandled message " + message);
+				}
 			}
 		}
 

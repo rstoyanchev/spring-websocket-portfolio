@@ -32,16 +32,6 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 	}
 
 	@Override
-	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.taskExecutor().corePoolSize(4).maxPoolSize(4).queueCapacity(1000);
-	}
-
-	@Override
-	public void configureClientOutboundChannel(ChannelRegistration registration) {
-		registration.taskExecutor().corePoolSize(4).maxPoolSize(4).queueCapacity(1000);
-	}
-
-	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
 		registry.enableSimpleBroker("/queue/", "/topic/");
 //		registry.enableStompBrokerRelay("/queue/", "/topic/");
