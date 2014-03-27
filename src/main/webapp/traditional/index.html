@@ -109,7 +109,8 @@
     <script src="portfolio.js"></script>
     <script type="text/javascript">
       (function() {
-        var socket = new SockJS('/spring-websocket-portfolio/portfolio');
+        var url = document.URL.replace('traditional/', '') + 'portfolio';
+        var socket = new SockJS(url, null, {protocols_whitelist: ['websocket']});
         var stompClient = Stomp.over(socket);
 
         var appModel = new ApplicationModel(stompClient);
