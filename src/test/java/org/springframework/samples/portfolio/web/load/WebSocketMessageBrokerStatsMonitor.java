@@ -22,17 +22,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 
-import java.text.NumberFormat;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
-@Component
 public class WebSocketMessageBrokerStatsMonitor {
 
 	private static Log logger = LogFactory.getLog(WebSocketMessageBrokerStatsMonitor.class);

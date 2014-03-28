@@ -42,8 +42,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 
 import javax.servlet.ServletRegistration;
-import java.io.File;
-import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -72,14 +70,6 @@ public class StompWebSocketServer {
 
 		try {
 			int port = SocketUtils.findAvailableTcpPort();
-
-			// Write the port to tmp file for StompWebSocketClient
-			File file = new File(System.getProperty("java.io.tmpdir"), "StompWebSocketTest.tmp");
-			file.deleteOnExit();
-			PrintWriter writer = new PrintWriter(file);
-			writer.write(port);
-			writer.close();
-
 			server = new TomcatWebSocketTestServer(port);
 			server.deployConfig(DispatcherServletInitializer.class);
 			server.start();
@@ -158,7 +148,7 @@ public class StompWebSocketServer {
 
 		@Override
 		public void configureClientOutboundChannel(ChannelRegistration registration) {
-			registration.taskExecutor().corePoolSize(100);
+			registration.taskExecutor().corePoolSize(250);
 		}
 
 		@Override

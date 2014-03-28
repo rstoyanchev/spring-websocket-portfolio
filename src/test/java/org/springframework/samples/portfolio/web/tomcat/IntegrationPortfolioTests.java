@@ -26,6 +26,7 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
@@ -121,6 +122,7 @@ public class IntegrationPortfolioTests {
 
 		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
 		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
+		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
 		stompClient.connect(new StompMessageHandler() {
 
@@ -183,6 +185,7 @@ public class IntegrationPortfolioTests {
 
 		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
 		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
+		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
 		stompClient.connect(new StompMessageHandler() {
 

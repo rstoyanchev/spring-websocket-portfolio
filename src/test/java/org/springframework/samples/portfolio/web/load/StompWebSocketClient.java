@@ -17,6 +17,7 @@
 package org.springframework.samples.portfolio.web.load;
 
 
+import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.StringMessageConverter;
@@ -27,15 +28,15 @@ import org.springframework.samples.portfolio.web.WebSocketStompClient;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,16 +49,12 @@ public class StompWebSocketClient {
 
 	public static void main(String[] args) throws Exception {
 
-		int port;
+		Assert.isTrue(args.length == 2, "Expected <host> and <port> arguments");
 
-		if (args.length == 1) {
-			port = Integer.valueOf(args[0]);
-		}
-		else {
-			port = readPort();
-		}
+		String host = args[0];
+		int port = Integer.valueOf(args[1]);
 
-		String url = "http://localhost:" + port + "/home";
+		String url = "http://" + host + ":" + port + "/home";
 		System.out.println("Sending warm-up HTTP request to " + url);
 		HttpStatus status = new RestTemplate().getForEntity(url, Void.class).getStatusCode();
 		Assert.state(status == HttpStatus.OK);
@@ -72,8 +69,13 @@ public class StompWebSocketClient {
 
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		URI uri = new URI("ws://localhost:" + port + "/stomp/websocket");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, new StandardWebSocketClient());
+		Executor executor = Executors.newFixedThreadPool(25);
+		org.eclipse.jetty.websocket.client.WebSocketClient jettyClient = new WebSocketClient(executor);
+		JettyWebSocketClient webSocketClient = new JettyWebSocketClient(jettyClient);
+		webSocketClient.start();
+
+		URI uri = new URI("ws://" + host + ":" + port + "/stomp/websocket");
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, webSocketClient);
 		stompClient.setMessageConverter(new StringMessageConverter());
 
 		System.out.print("Connecting and subscribing " + numberOfUsers + " users ");
@@ -116,22 +118,7 @@ public class StompWebSocketClient {
 		stopWatch.stop();
 		System.out.println("(" + stopWatch.getLastTaskTimeMillis() + " millis)");
 
-	}
-
-	private static int readPort() throws IOException {
-		File file = new File(System.getProperty("java.io.tmpdir"), "StompWebSocketTest.tmp");
-		try {
-			FileReader reader = new FileReader(file);
-			int value = reader.read();
-			reader.close();
-			return value;
-		}
-		catch (Throwable ex) {
-			System.err.println("Failed to read port from " + file.toString() + ". " +
-					"It looks like StompWebSocketServer.java is not running on this machine. " +
-					"Pass port as command line argument instead");
-			throw ex;
-		}
+		webSocketClient.stop();
 	}
 
 
