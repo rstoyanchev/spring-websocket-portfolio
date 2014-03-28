@@ -11,7 +11,7 @@
 	</appender>
 	
 	<logger name="org.springframework.samples">
-		<level value="info" />
+		<level value="warn" />
 	</logger>
 	
 	<logger name="org.springframework.web">
@@ -19,11 +19,15 @@
 	</logger>
 
 	<logger name="org.springframework.web.socket">
-		<level value="info" />
+		<level value="off" />
 	</logger>
 
     <logger name="org.springframework.messaging">
-        <level value="warn" />
+        <level value="off" />
+    </logger>
+
+    <logger name="org.springframework.samples.portfolio.web.load.WebSocketMessageBrokerStatsMonitor">
+        <level value="debug" />
     </logger>
 
     <logger name="org.springframework.security">

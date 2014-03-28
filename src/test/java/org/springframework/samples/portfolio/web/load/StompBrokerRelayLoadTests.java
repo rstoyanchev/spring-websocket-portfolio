@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.broker.BrokerAvailabilityEvent;
@@ -38,12 +40,17 @@ import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -62,7 +69,7 @@ import static org.junit.Assert.assertTrue;
  * (for connecting, subscribing, and disconnecting) and to the "brokerChannel"
  * (message broadcasting). Similarly messages received from the message broker
  * are recorded by registering a
- * {@link org.springframework.samples.portfolio.web.load.TestMessageHandler}
+ * {@link org.springframework.samples.portfolio.web.load.StompBrokerRelayLoadTests.TestMessageHandler}
  * on the "clientOutboundChannel".
  *
  * <p>The test can be configured with the number of users to simulate as well
@@ -301,5 +308,61 @@ public class StompBrokerRelayLoadTests {
 		}
 	}
 
+
+	static class TestMessageHandler implements MessageHandler {
+
+		private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
+
+		private final List<String> destinationPatterns = new ArrayList<>();
+
+		private final PathMatcher matcher = new AntPathMatcher();
+
+		private volatile boolean isRecording;
+
+
+		/**
+		 * @param autoStart whether to start recording messages removing the need to
+		 * 	call {@link #startRecording()} explicitly
+		 */
+		public TestMessageHandler(boolean autoStart) {
+			this.isRecording = autoStart;
+		}
+
+		public void setIncludedDestinations(String... patterns) {
+			this.destinationPatterns.addAll(Arrays.asList(patterns));
+		}
+
+		public void startRecording() {
+			this.isRecording = true;
+		}
+
+		public void stopRecording() {
+			this.isRecording = false;
+		}
+
+		public Message<?> awaitMessage(long timeoutInMillis) throws InterruptedException {
+			return this.messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+		}
+
+		@Override
+		public void handleMessage(Message<?> message) throws MessagingException {
+			if (this.isRecording) {
+				if (this.destinationPatterns.isEmpty()) {
+					this.messages.add(message);
+				}
+				else {
+					StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
+					if (headers.getDestination() != null) {
+						for (String pattern : this.destinationPatterns) {
+							if (this.matcher.match(pattern, headers.getDestination())) {
+								this.messages.add(message);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 }
