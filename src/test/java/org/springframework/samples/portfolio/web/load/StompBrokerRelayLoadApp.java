@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StopWatch;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,7 +70,7 @@ import static org.junit.Assert.assertTrue;
  * (for connecting, subscribing, and disconnecting) and to the "brokerChannel"
  * (message broadcasting). Similarly messages received from the message broker
  * are recorded by registering a
- * {@link org.springframework.samples.portfolio.web.load.StompBrokerRelayLoadTests.TestMessageHandler}
+ * {@link StompBrokerRelayLoadApp.TestMessageHandler}
  * on the "clientOutboundChannel".
  *
  * <p>The test can be configured with the number of users to simulate as well
@@ -81,50 +82,72 @@ import static org.junit.Assert.assertTrue;
  * @author Rossen Stoyanchev
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class StompBrokerRelayLoadTests {
+public class StompBrokerRelayLoadApp {
+
+
+	public static final int NUMBER_OF_USERS = 750;
+
+	public static final int NUMBER_OF_MESSAGES_TO_BROADCAST = 100;
 
 	public static final String DEFAULT_DESTINATION = "/topic/brokerTests-global";
 
-	@Autowired private AbstractSubscribableChannel clientInboundChannel;
 
-	@Autowired private AbstractSubscribableChannel clientOutboundChannel;
+	private AbstractSubscribableChannel clientInboundChannel;
 
-	@Autowired private TestMessageHandler clientOutboundMessageHandler;
+	private AbstractSubscribableChannel clientOutboundChannel;
 
-	@Autowired private SimpMessagingTemplate brokerMessagingTemplate;
+	private TestMessageHandler clientOutboundMessageHandler;
 
-	@Autowired private CountDownLatch brokerAvailabilityLatch;
+	private SimpMessagingTemplate brokerMessagingTemplate;
+
+	private CountDownLatch brokerAvailabilityLatch;
 
 	private StopWatch stopWatch;
 
 
-	@Before
-	public void setUp() throws Exception {
-		this.stopWatch = new StopWatch("STOMP Broker Relay Load Tests");
+
+	public static void main(String[] args) throws InterruptedException {
+
+		StompBrokerRelayLoadApp app = new StompBrokerRelayLoadApp();
+		try {
+			app.runTest();
+		}
+		catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		System.exit(0);
 	}
 
 
-	@Test
-	public void simpleBroadcast() throws Exception {
+	private void runTest() throws InterruptedException {
 
-		this.brokerAvailabilityLatch.await(5000, TimeUnit.MILLISECONDS);
+		AnnotationConfigWebApplicationContext cxt = new AnnotationConfigWebApplicationContext();
+		cxt.register(MessageConfig.class);
+		cxt.refresh();
 
-		int numberOfUsers = 750;
-		int numberOfMessagesToBroadcast = 100;
+		this.clientInboundChannel = cxt.getBean("clientInboundChannel", AbstractSubscribableChannel.class);
+		this.clientOutboundChannel = cxt.getBean("clientOutboundChannel", AbstractSubscribableChannel.class);
+		this.clientOutboundMessageHandler = cxt.getBean(TestMessageHandler.class);
+		this.brokerMessagingTemplate = cxt.getBean(SimpMessagingTemplate.class);
+
+		this.stopWatch = new StopWatch("STOMP Broker Relay Load Tests");
+
+		this.brokerAvailabilityLatch = cxt.getBean(CountDownLatch.class);
+		brokerAvailabilityLatch.await(5000, TimeUnit.MILLISECONDS);
 
 		Person person = new Person();
 		person.setName("Joe");
 
-		List<String> sessionIds = initIdentifiers("session", numberOfUsers);
-		List<String> subscriptionIds = initIdentifiers("subscription", numberOfUsers);
-		List<String> receiptIds = initIdentifiers("receipt", numberOfUsers);
+		List<String> sessionIds = initIdentifiers("session", NUMBER_OF_USERS);
+		List<String> subscriptionIds = initIdentifiers("subscription", NUMBER_OF_USERS);
+		List<String> receiptIds = initIdentifiers("receipt", NUMBER_OF_USERS);
 
 		connect(sessionIds);
 		subscribe(sessionIds, subscriptionIds, receiptIds);
-		broadcast(DEFAULT_DESTINATION, person, numberOfMessagesToBroadcast, numberOfUsers);
+		broadcast(DEFAULT_DESTINATION, person, NUMBER_OF_MESSAGES_TO_BROADCAST, NUMBER_OF_USERS);
 		disconnect(sessionIds);
+
 	}
 
 	private List<String> initIdentifiers(String prefix, int howMany) {
@@ -168,7 +191,7 @@ public class StompBrokerRelayLoadTests {
 
 	private void subscribe(List<String> sessionIds, List<String> subscriptionIds, List<String> receiptIds) throws InterruptedException {
 
-		System.out.print("Subscribing (1 destination per user) ");
+		System.out.print("Subscribing all users");
 		this.stopWatch.start();
 
 		for (int i=0; i < sessionIds.size(); i++) {

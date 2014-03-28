@@ -34,7 +34,7 @@ import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.samples.portfolio.config.WebSocketConfig;
 import org.springframework.samples.portfolio.service.Trade;
-import org.springframework.samples.portfolio.web.TestPrincipal;
+import org.springframework.samples.portfolio.web.support.TestPrincipal;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.JsonPathExpectationsHelper;

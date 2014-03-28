@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web;
+package org.springframework.samples.portfolio.web.support.client;
 
 
 import org.springframework.messaging.Message;

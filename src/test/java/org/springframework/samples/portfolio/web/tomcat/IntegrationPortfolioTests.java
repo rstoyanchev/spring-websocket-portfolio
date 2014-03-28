@@ -31,10 +31,10 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
 import org.springframework.samples.portfolio.service.Trade;
-import org.springframework.samples.portfolio.web.StompMessageHandler;
-import org.springframework.samples.portfolio.web.StompSession;
-import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
-import org.springframework.samples.portfolio.web.WebSocketStompClient;
+import org.springframework.samples.portfolio.web.support.client.StompMessageHandler;
+import org.springframework.samples.portfolio.web.support.client.StompSession;
+import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.client.WebSocketStompClient;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -84,6 +84,15 @@ public class IntegrationPortfolioTests {
 
 	@BeforeClass
 	public static void setup() throws Exception {
+
+		// Since test classpath includes both embedded Tomcat and Jetty we need to
+		// set a Spring profile explicitly to bypass WebSocket engine detection.
+		// See {@link org.springframework.samples.portfolio.config.WebSocketConfig}
+
+		// This test is not supported with Jetty because it doesn't seem to support
+		// deployment withspecific ServletContainerInitializer's at for testing
+
+		System.setProperty("spring.profiles.active", "test.tomcat");
 
 		port = SocketUtils.findAvailableTcpPort();
 

@@ -43,7 +43,6 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 	@Override
 	protected void customizeRegistration(Dynamic registration) {
 		registration.setInitParameter("dispatchOptionsRequest", "true");
-		registration.setAsyncSupported(true);
 	}
 
 }

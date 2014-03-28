@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web;
+package org.springframework.samples.portfolio.web.support.client;
 
 
-public interface StompSession {
+public interface StompClient {
 
-	void subscribe(String destination, String receiptId);
-
-	void send(String destination, Object payload);
-
-	void disconnect();
+	void connect(StompMessageHandler messageHandler);
 
 }

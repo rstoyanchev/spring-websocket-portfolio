@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web;
+package org.springframework.samples.portfolio.web.support.server;
 
-import java.security.Principal;
-
-/**
- * A simple simple implementation of {@link java.security.Principal}.
- */
-public class TestPrincipal  implements Principal {
-
-	private final String name;
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.WebApplicationContext;
 
 
-	public TestPrincipal(String name) {
-		this.name = name;
-	}
+public interface WebSocketTestServer {
 
-	@Override
-	public String getName() {
-		return this.name;
-	}
+	int getPort();
+
+	void deployConfig(WebApplicationContext cxt);
+
+	void undeployConfig();
+
+	void start() throws Exception;
+
+	void stop() throws Exception;
 
 }

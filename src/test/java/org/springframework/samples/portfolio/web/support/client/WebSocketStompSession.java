@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web;
+package org.springframework.samples.portfolio.web.support.client;
 
 
 import org.springframework.messaging.Message;
@@ -26,6 +26,7 @@ import org.springframework.messaging.simp.stomp.StompEncoder;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -78,8 +79,11 @@ public class WebSocketStompSession implements StompSession {
 	}
 
 	public void disconnect() {
+		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.DISCONNECT);
+		Message<byte[]> message = MessageBuilder.withPayload(EMPTY_PAYLOAD).setHeaders(headers).build();
+		sendInternal(message);
 		try {
-			this.webSocketSession.close();
+			this.webSocketSession.close(CloseStatus.GOING_AWAY);
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
@@ -96,4 +100,8 @@ public class WebSocketStompSession implements StompSession {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "webSocketSession=" + this.webSocketSession;
+	}
 }

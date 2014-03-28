@@ -33,15 +33,12 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.samples.portfolio.service.PortfolioService;
 import org.springframework.samples.portfolio.service.PortfolioServiceImpl;
 import org.springframework.samples.portfolio.service.Trade;
-import org.springframework.samples.portfolio.service.TradeService;
 import org.springframework.samples.portfolio.web.PortfolioController;
-import org.springframework.samples.portfolio.web.TestPrincipal;
+import org.springframework.samples.portfolio.web.support.TestPrincipal;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

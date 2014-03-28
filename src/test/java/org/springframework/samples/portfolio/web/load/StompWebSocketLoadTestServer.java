@@ -17,8 +17,10 @@
 package org.springframework.samples.portfolio.web.load;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MessageConverter;
@@ -28,20 +30,23 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.samples.portfolio.web.TomcatWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.server.JettyWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.server.WebSocketTestServer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
+import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
-import javax.servlet.ServletRegistration;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,7 +56,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class StompWebSocketServer {
+public class StompWebSocketLoadTestServer {
+
+	// When false, Tomcat is used
+	public static final boolean USE_JETTY = true;
 
 	private static final StringMessageConverter MESSAGE_CONVERTER;
 
@@ -66,12 +74,21 @@ public class StompWebSocketServer {
 
 	public static void main(String[] args) {
 
-		TomcatWebSocketTestServer server = null;
+		WebSocketTestServer server = null;
 
 		try {
+			AnnotationConfigWebApplicationContext cxt = new AnnotationConfigWebApplicationContext();
+			cxt.register(WebSocketConfig.class);
+
 			int port = SocketUtils.findAvailableTcpPort();
-			server = new TomcatWebSocketTestServer(port);
-			server.deployConfig(DispatcherServletInitializer.class);
+			if (USE_JETTY) {
+				server = new JettyWebSocketTestServer(port);
+			}
+			else {
+				System.setProperty("spring.profiles.active", "test.tomcat");
+				server = new TomcatWebSocketTestServer(port);
+			}
+			server.deployConfig(cxt);
 			server.start();
 
 			System.out.println("Running on port " + port);
@@ -104,40 +121,24 @@ public class StompWebSocketServer {
 	}
 
 
-	public static class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
-
-		@Override
-		protected Class<?>[] getRootConfigClasses() {
-			return null;
-		}
-
-		@Override
-		protected Class<?>[] getServletConfigClasses() {
-			return new Class<?>[] { WebSocketConfig.class };
-		}
-
-		@Override
-		protected String[] getServletMappings() {
-			return new String[] { "/" };
-		}
-
-		@Override
-		protected void customizeRegistration(ServletRegistration.Dynamic registration) {
-			registration.setInitParameter("dispatchOptionsRequest", "true");
-			registration.setAsyncSupported(true);
-		}
-
-	}
-
 	@Configuration
 	@EnableWebMvc
 	@EnableScheduling
 	static class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport {
 
+		@Autowired Environment env;
+
 
 		@Override
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
-			registry.addEndpoint("/stomp").withSockJS();
+			// Since test classpath includes both embedded Tomcat and Jetty, use profile to decide
+			if (this.env.acceptsProfiles("test.tomcat")) {
+				registry.addEndpoint("/stomp").setHandshakeHandler(
+						new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy())).withSockJS();
+			}
+			else {
+				registry.addEndpoint("/stomp").withSockJS();
+			}
 		}
 
 		@Override
@@ -148,7 +149,7 @@ public class StompWebSocketServer {
 
 		@Override
 		public void configureClientOutboundChannel(ChannelRegistration registration) {
-			registration.taskExecutor().corePoolSize(250);
+			registration.taskExecutor().corePoolSize(50);
 		}
 
 		@Override

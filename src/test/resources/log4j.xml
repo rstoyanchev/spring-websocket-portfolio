@@ -19,19 +19,23 @@
 	</logger>
 
 	<logger name="org.springframework.web.socket">
-		<level value="off" />
+		<level value="error" />
 	</logger>
 
     <logger name="org.springframework.messaging">
-        <level value="off" />
+        <level value="error" />
+    </logger>
+
+    <logger name="org.springframework.security">
+        <level value="info" />
     </logger>
 
     <logger name="org.springframework.samples.portfolio.web.load.WebSocketMessageBrokerStatsMonitor">
         <level value="debug" />
     </logger>
 
-    <logger name="org.springframework.security">
-        <level value="info" />
+    <logger name="org.springframework.samples.portfolio.web.load">
+        <level value="debug" />
     </logger>
 
     <root>

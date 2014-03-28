@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web;
+package org.springframework.samples.portfolio.web.support.server;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
@@ -23,7 +23,6 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.tomcat.util.descriptor.web.ApplicationListener;
 import org.apache.tomcat.websocket.server.WsContextListener;
-import org.springframework.util.SocketUtils;
 import org.springframework.web.SpringServletContainerInitializer;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.WebApplicationContext;
@@ -43,7 +42,7 @@ import java.util.HashSet;
  *
  * @author Rossen Stoyanchev
  */
-public class TomcatWebSocketTestServer {
+public class TomcatWebSocketTestServer implements WebSocketTestServer {
 
 	private static final ApplicationListener WS_APPLICATION_LISTENER =
 			new ApplicationListener(WsContextListener.class.getName(), false);
@@ -87,6 +86,14 @@ public class TomcatWebSocketTestServer {
 
 	public int getPort() {
 		return this.port;
+	}
+
+	@Override
+	public void deployConfig(WebApplicationContext cxt) {
+		this.context = this.tomcatServer.addContext("", System.getProperty("java.io.tmpdir"));
+		this.context.addApplicationListener(WS_APPLICATION_LISTENER);
+		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(cxt));
+		this.context.addServletMapping("/", "dispatcherServlet");
 	}
 
 	public void deployConfig(Class<? extends WebApplicationInitializer>... initializers) {
