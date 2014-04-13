@@ -83,8 +83,6 @@ public class WebSocketStompClient implements StompClient {
 
 		private final MessageConverter messageConverter;
 
-		private WebSocketSession session;
-
 		private final StompEncoder encoder = new StompEncoder();
 
 		private final StompDecoder decoder = new StompDecoder();
@@ -103,8 +101,6 @@ public class WebSocketStompClient implements StompClient {
 		@Override
 		public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
-			this.session = session;
-
 			StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
 			headers.setAcceptVersion("1.1,1.2");
 			headers.setHeartbeat(0, 0);
@@ -119,9 +115,6 @@ public class WebSocketStompClient implements StompClient {
 
 			ByteBuffer payload = ByteBuffer.wrap(textMessage.getPayload().getBytes(UTF_8));
 			List<Message<byte[]>> messages = this.decoder.decode(payload);
-			if (messages == null) {
-				logger.error("Incomplete/invalid message received");
-			}
 
 			for (Message message : messages) {
 				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
@@ -150,12 +143,10 @@ public class WebSocketStompClient implements StompClient {
 		@Override
 		public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
 			logger.error("WebSocket transport error", exception);
-			this.session = null;
 		}
 
 		@Override
 		public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-			this.session = null;
 			this.stompMessageHandler.afterDisconnected();
 		}
 	}

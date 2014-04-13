@@ -16,10 +16,6 @@
 
 package org.springframework.samples.portfolio.web.load;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +24,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.broker.BrokerAvailabilityEvent;
 import org.springframework.messaging.simp.config.AbstractMessageBrokerConfiguration;
@@ -38,8 +33,6 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StopWatch;
@@ -163,23 +156,21 @@ public class StompBrokerRelayLoadApp {
 		System.out.print("Connecting " + sessionIds.size() + " users ");
 		this.stopWatch.start();
 
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
-		headers.setHeartbeat(0, 0);
-		MessageBuilder<byte[]> messageBuilder = MessageBuilder.withPayload(new byte[0]).setHeaders(headers);
-
 		for (int i = 0; i < sessionIds.size(); i++) {
-			headers.setSessionId(sessionIds.get(i));
-			messageBuilder.setHeader(SimpMessageHeaderAccessor.SESSION_ID_HEADER, sessionIds.get(i));
-			this.clientInboundChannel.send(messageBuilder.build());
+			StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+			headerAccessor.setHeartbeat(0, 0);
+			headerAccessor.setSessionId(sessionIds.get(i));
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
+			this.clientInboundChannel.send(message);
 		}
 
 		List<String> expectedIds = new ArrayList<>(sessionIds);
 		while (!expectedIds.isEmpty()) {
 			Message<?> message = this.clientOutboundMessageHandler.awaitMessage(5000);
 			assertNotNull("No more messages, expected " + expectedIds.size() + " more ids: " + expectedIds, message);
-			headers = StompHeaderAccessor.wrap(message);
-			assertEquals(StompCommand.CONNECTED, headers.getCommand());
-			assertTrue(expectedIds.remove(headers.getSessionId()));
+			StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+			assertEquals(StompCommand.CONNECTED, headerAccessor.getCommand());
+			assertTrue(expectedIds.remove(headerAccessor.getSessionId()));
 			if (expectedIds.size() % 100 == 0) {
 				System.out.print(".");
 			}
@@ -200,7 +191,7 @@ public class StompBrokerRelayLoadApp {
 			headers.setSubscriptionId(subscriptionIds.get(i));
 			headers.setDestination(DEFAULT_DESTINATION);
 			headers.setReceipt(receiptIds.get(i));
-			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
 
@@ -253,12 +244,11 @@ public class StompBrokerRelayLoadApp {
 		System.out.print("Disconnecting... ");
 		this.stopWatch.start("Disconnect");
 
-		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.DISCONNECT);
-		MessageBuilder<byte[]> messageBuilder = MessageBuilder.withPayload(new byte[0]).setHeaders(headers);
-
 		for (int i=0; i < sessionIds.size(); i++) {
-			messageBuilder.setHeader(SimpMessageHeaderAccessor.SESSION_ID_HEADER, sessionIds.get(i));
-			this.clientInboundChannel.send(messageBuilder.build());
+			StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.DISCONNECT);
+			headers.setSessionId(sessionIds.get(i));
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
+			this.clientInboundChannel.send(message);
 		}
 		this.stopWatch.stop();
 		System.out.println("(" + this.stopWatch.getLastTaskTimeMillis() + " millis)");

@@ -66,7 +66,7 @@ public class StompWebSocketLoadTestClient {
 			host = args[0];
 		}
 
-		int port = 8080;
+		int port = 12103;
 		if (args.length > 1) {
 			port = Integer.valueOf(args[1]);
 		}
@@ -126,7 +126,6 @@ public class StompWebSocketLoadTestClient {
 			if (!messageLatch.await(5 * 60 * 1000, TimeUnit.MILLISECONDS)) {
 				fail("Not all handlers received every message, remaining: " + messageLatch.getCount());
 			}
-//			Thread.sleep(10000);
 			if (!disconnectLatch.await(5000, TimeUnit.MILLISECONDS)) {
 				fail("Not all disconnects completed, remaining: " + disconnectLatch.getCount());
 			}
