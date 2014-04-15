@@ -109,7 +109,7 @@ public class StompWebSocketLoadTestClient {
 				fail("Not all users connected, remaining: " + connectLatch.getCount());
 			}
 			if (!subscribeLatch.await(5000, TimeUnit.MILLISECONDS)) {
-				fail("Not all users subscribed, remaining: " + connectLatch.getCount());
+				fail("Not all users subscribed, remaining: " + subscribeLatch.getCount());
 			}
 
 			stopWatch.stop();
