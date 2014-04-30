@@ -116,7 +116,7 @@ public class ContextPortfolioControllerTests {
 		headers.setUser(new TestPrincipal("fabrice"));
 		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
 
-		this.clientOutboundChannelInterceptor.setIncludedDestinations("/positions");
+		this.clientOutboundChannelInterceptor.setIncludedDestinations("/app/positions");
 		this.clientOutboundChannelInterceptor.startRecording();
 
 		this.clientInboundChannel.send(message);
@@ -127,7 +127,7 @@ public class ContextPortfolioControllerTests {
 		StompHeaderAccessor replyHeaders = StompHeaderAccessor.wrap(reply);
 		assertEquals("0", replyHeaders.getSessionId());
 		assertEquals("0", replyHeaders.getSubscriptionId());
-		assertEquals("/positions", replyHeaders.getDestination());
+		assertEquals("/app/positions", replyHeaders.getDestination());
 
 		String json = new String((byte[]) reply.getPayload(), Charset.forName("UTF-8"));
 		new JsonPathExpectationsHelper("$[0].company").assertValue(json, "Citrix Systems, Inc.");
