@@ -66,7 +66,7 @@ public class StompWebSocketLoadTestClient {
 			host = args[0];
 		}
 
-		int port = 12103;
+		int port = 21894;
 		if (args.length > 1) {
 			port = Integer.valueOf(args[1]);
 		}

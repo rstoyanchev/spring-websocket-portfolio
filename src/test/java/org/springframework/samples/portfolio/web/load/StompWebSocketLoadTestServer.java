@@ -44,6 +44,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
+import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
@@ -126,19 +127,15 @@ public class StompWebSocketLoadTestServer {
 	@EnableScheduling
 	static class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport {
 
-		@Autowired Environment env;
-
-
 		@Override
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
-			// Since test classpath includes both embedded Tomcat and Jetty, use profile to decide
-			if (this.env.acceptsProfiles("test.tomcat")) {
-				registry.addEndpoint("/stomp").setHandshakeHandler(
-						new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy())).withSockJS();
-			}
-			else {
-				registry.addEndpoint("/stomp").withSockJS();
-			}
+
+			// The test classpath includes both Tomcat and Jetty, so let's be explicit
+			DefaultHandshakeHandler handler = USE_JETTY ?
+					new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy()) :
+					new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy());
+
+			registry.addEndpoint("/stomp").setHandshakeHandler(handler).withSockJS();
 		}
 
 		@Override

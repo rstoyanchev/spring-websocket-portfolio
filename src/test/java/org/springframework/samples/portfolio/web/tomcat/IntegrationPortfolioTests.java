@@ -19,6 +19,11 @@ package org.springframework.samples.portfolio.web.tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -27,14 +32,17 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
+import org.springframework.samples.portfolio.config.WebConfig;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
 import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.web.support.client.StompMessageHandler;
 import org.springframework.samples.portfolio.web.support.client.StompSession;
 import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
 import org.springframework.samples.portfolio.web.support.client.WebSocketStompClient;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -44,6 +52,11 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.io.IOException;
 import java.net.URI;
@@ -97,7 +110,7 @@ public class IntegrationPortfolioTests {
 		port = SocketUtils.findAvailableTcpPort();
 
 		server = new TomcatWebSocketTestServer(port);
-		server.deployConfig(DispatcherServletInitializer.class, WebSecurityInitializer.class);
+		server.deployConfig(TestDispatcherServletInitializer.class, WebSecurityInitializer.class);
 		server.start();
 
 		loginAndSaveJsessionIdCookie("fabrice", "fab123", headers);
@@ -286,6 +299,42 @@ public class IntegrationPortfolioTests {
 						return null;
 					}
 				});
+	}
+
+
+	public static class TestDispatcherServletInitializer extends DispatcherServletInitializer {
+
+		@Override
+		protected Class<?>[] getServletConfigClasses() {
+			return new Class[] { WebConfig.class, TestWebSocketConfig.class };
+		}
+	}
+
+	@Configuration
+	@EnableScheduling
+	@ComponentScan(
+			basePackages="org.springframework.samples",
+			excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION, value = Configuration.class)
+	)
+	@EnableWebSocketMessageBroker
+	static class TestWebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
+		@Autowired
+		Environment env;
+
+		@Override
+		public void registerStompEndpoints(StompEndpointRegistry registry) {
+			// The test classpath includes both Tomcat and Jetty, so let's be explicit
+			DefaultHandshakeHandler handler = new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy());
+			registry.addEndpoint("/portfolio").setHandshakeHandler(handler).withSockJS();
+		}
+
+		@Override
+		public void configureMessageBroker(MessageBrokerRegistry registry) {
+//			registry.enableSimpleBroker("/queue/", "/topic/");
+			registry.enableStompBrokerRelay("/queue/", "/topic/");
+			registry.setApplicationDestinationPrefixes("/app");
+		}
 	}
 
 }
