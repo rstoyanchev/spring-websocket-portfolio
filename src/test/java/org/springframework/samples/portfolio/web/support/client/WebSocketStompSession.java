@@ -84,7 +84,7 @@ public class WebSocketStompSession implements StompSession {
 		Message<byte[]> message = MessageBuilder.withPayload(EMPTY_PAYLOAD).setHeaders(headers).build();
 		sendInternal(message);
 		try {
-			this.webSocketSession.close(CloseStatus.GOING_AWAY);
+			this.webSocketSession.close();
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);

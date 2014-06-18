@@ -24,6 +24,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -57,10 +58,16 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+import org.springframework.web.socket.sockjs.client.XhrTransport;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -92,6 +99,8 @@ public class IntegrationPortfolioTests {
 
 	private static TomcatWebSocketTestServer server;
 
+	private static SockJsClient sockJsClient;
+
 	private final static WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
 
@@ -114,6 +123,43 @@ public class IntegrationPortfolioTests {
 		server.start();
 
 		loginAndSaveJsessionIdCookie("fabrice", "fab123", headers);
+
+		sockJsClient = new SockJsClient(initSockJsClientTransports());
+	}
+
+	private static List<Transport> initSockJsClientTransports() {
+		List<Transport> transports = new ArrayList<>();
+		transports.add(new WebSocketTransport(new StandardWebSocketClient()));
+		XhrTransport xhrTransport = new XhrTransport(new RestTemplate(), true);
+		xhrTransport.setTaskExecutor(new SimpleAsyncTaskExecutor("SockJsClient-"));
+		transports.add(xhrTransport);
+		return transports;
+	}
+
+	private static void loginAndSaveJsessionIdCookie(final String user, final String password,
+			final HttpHeaders headersToUpdate) {
+
+		String url = "http://localhost:" + port + "/login.html";
+
+		new RestTemplate().execute(url, HttpMethod.POST,
+
+				new RequestCallback() {
+					@Override
+					public void doWithRequest(ClientHttpRequest request) throws IOException {
+						MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+						map.add("username", user);
+						map.add("password", password);
+						new FormHttpMessageConverter().write(map, MediaType.APPLICATION_FORM_URLENCODED, request);
+					}
+				},
+
+				new ResponseExtractor<Object>() {
+					@Override
+					public Object extractData(ClientHttpResponse response) throws IOException {
+						headersToUpdate.add("Cookie", response.getHeaders().getFirst("Set-Cookie"));
+						return null;
+					}
+				});
 	}
 
 	@AfterClass
@@ -142,8 +188,8 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
+		URI uri = new URI("ws://localhost:" + port + "/portfolio");
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, sockJsClient);
 		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
 		stompClient.connect(new StompMessageHandler() {
@@ -173,8 +219,8 @@ public class IntegrationPortfolioTests {
 					failure.set(t);
 				}
 				finally {
-					latch.countDown();
 					this.stompSession.disconnect();
+					latch.countDown();
 				}
 			}
 
@@ -205,8 +251,8 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		URI uri = new URI("ws://localhost:" + port + "/portfolio/websocket");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, new StandardWebSocketClient());
+		URI uri = new URI("ws://localhost:" + port + "/portfolio");
+		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, sockJsClient);
 		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
 		stompClient.connect(new StompMessageHandler() {
@@ -249,8 +295,8 @@ public class IntegrationPortfolioTests {
 					failure.set(t);
 				}
 				finally {
-					latch.countDown();
 					this.stompSession.disconnect();
+					latch.countDown();
 				}
 			}
 
@@ -272,33 +318,6 @@ public class IntegrationPortfolioTests {
 		else if (failure.get() != null) {
 			throw new AssertionError("", failure.get());
 		}
-	}
-
-
-	private static void loginAndSaveJsessionIdCookie(final String user, final String password,
-			final HttpHeaders headersToUpdate) {
-
-		String url = "http://localhost:" + port + "/login.html";
-
-		new RestTemplate().execute(url, HttpMethod.POST,
-
-				new RequestCallback() {
-					@Override
-					public void doWithRequest(ClientHttpRequest request) throws IOException {
-						MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-						map.add("username", user);
-						map.add("password", password);
-						new FormHttpMessageConverter().write(map, MediaType.APPLICATION_FORM_URLENCODED, request);
-					}
-				},
-
-				new ResponseExtractor<Object>() {
-					@Override
-					public Object extractData(ClientHttpResponse response) throws IOException {
-						headersToUpdate.add("Cookie", response.getHeaders().getFirst("Set-Cookie"));
-						return null;
-					}
-				});
 	}
 
 
