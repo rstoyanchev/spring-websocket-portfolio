@@ -4,7 +4,7 @@ if [ -z "$TOMCAT8_HOME" ]; then
     exit 1
 fi
 
-mvn -DskipTests clean package
+mvn -U -DskipTests clean package
 
 rm -rf $TOMCAT8_HOME/webapps/spring-websocket-portfolio*
 
