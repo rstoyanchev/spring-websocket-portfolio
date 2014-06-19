@@ -32,7 +32,7 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	protected Class<?>[] getServletConfigClasses() {
-		return new Class<?>[] { WebConfig.class, WebSocketConfig.class };
+		return new Class<?>[] { WebConfig.class, WebSocketConfig.class, JmxConfig.class };
 	}
 
 	@Override
