@@ -8,7 +8,7 @@
 
 	<properties>
 		<org.springframework-version>4.1.0.BUILD-SNAPSHOT</org.springframework-version>
-		<!--<org.springframework-version>4.0.5.RELEASE</org.springframework-version>-->
+		<!-- <org.springframework-version>4.0.5.RELEASE</org.springframework-version> -->
 		<!--<org.springframework-version>4.0.4.RELEASE</org.springframework-version>-->
 		<org.springframework.security-version>3.2.0.RELEASE</org.springframework.security-version>
 	</properties>
