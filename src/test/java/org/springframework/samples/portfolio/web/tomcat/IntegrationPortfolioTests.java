@@ -24,7 +24,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.core.env.Environment;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -58,10 +57,10 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.sockjs.client.RestTemplateXhrTransport;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
-import org.springframework.web.socket.sockjs.client.XhrTransport;
 
 import java.io.IOException;
 import java.net.URI;
@@ -124,16 +123,13 @@ public class IntegrationPortfolioTests {
 
 		loginAndSaveJsessionIdCookie("fabrice", "fab123", headers);
 
-		sockJsClient = new SockJsClient(initSockJsClientTransports());
-	}
-
-	private static List<Transport> initSockJsClientTransports() {
 		List<Transport> transports = new ArrayList<>();
 		transports.add(new WebSocketTransport(new StandardWebSocketClient()));
-		XhrTransport xhrTransport = new XhrTransport(new RestTemplate(), true);
-		xhrTransport.setTaskExecutor(new SimpleAsyncTaskExecutor("SockJsClient-"));
+		RestTemplateXhrTransport xhrTransport = new RestTemplateXhrTransport(new RestTemplate());
+		xhrTransport.setRequestHeaders(headers);
 		transports.add(xhrTransport);
-		return transports;
+
+		sockJsClient = new SockJsClient(transports);
 	}
 
 	private static void loginAndSaveJsessionIdCookie(final String user, final String password,
@@ -312,7 +308,7 @@ public class IntegrationPortfolioTests {
 			public void afterDisconnected() {}
 		});
 
-		if (!latch.await(5, TimeUnit.SECONDS)) {
+		if (!latch.await(10, TimeUnit.SECONDS)) {
 			fail("Trade confirmation not received");
 		}
 		else if (failure.get() != null) {
