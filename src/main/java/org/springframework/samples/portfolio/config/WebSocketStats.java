@@ -22,10 +22,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.adapter.AbstractWebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
-import org.springframework.web.socket.handler.WebSocketSessionDecorator;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 import org.springframework.web.socket.sockjs.transport.session.AbstractHttpSockJsSession;
 import org.springframework.web.socket.sockjs.transport.session.WebSocketServerSockJsSession;
@@ -101,12 +99,12 @@ public class WebSocketStats {
 
 	private static class WebSocketSessionStats {
 
-		private final Map<String, WebSocketSession> sessions;
+		private final Map<String, ?> sessions;
 
 
 		@SuppressWarnings("unchecked")
 		private WebSocketSessionStats(SubProtocolWebSocketHandler webSocketHandler) {
-			this.sessions = (Map<String, WebSocketSession>) new DirectFieldAccessor(
+			this.sessions = (Map<String, ?>) new DirectFieldAccessor(
 					webSocketHandler).getPropertyValue("sessions");
 		}
 
@@ -114,11 +112,12 @@ public class WebSocketStats {
 			int httpSockJsSessions = 0;
 			int wsSockJsSessions = 0;
 			int wsSessions = 0;
-			for (Map.Entry<String, WebSocketSession> entry : this.sessions.entrySet()) {
-				WebSocketSession session = entry.getValue();
-				if (session instanceof WebSocketSessionDecorator) {
-					session = ((WebSocketSessionDecorator) session).getLastSession();
-				}
+			int sendBufferSize = 0;
+			for (Map.Entry<String, ?> entry : this.sessions.entrySet()) {
+				Object session = new DirectFieldAccessor(entry.getValue()).getPropertyValue("session");
+				ConcurrentWebSocketSessionDecorator concurrentSession = (ConcurrentWebSocketSessionDecorator) session;
+				sendBufferSize += concurrentSession.getBufferSize();
+				session = concurrentSession.getLastSession();
 				if (session instanceof AbstractHttpSockJsSession) {
 					httpSockJsSessions++;
 				}
@@ -134,18 +133,10 @@ public class WebSocketStats {
 			sb.append(httpSockJsSessions).append(" SockJS-HTTP, ");
 			sb.append(wsSockJsSessions).append(" SockJS-WebSocket, ");
 			sb.append(wsSessions).append(" WebSocket), ");
-			sb.append(formatByteCount(calculateSendBufferSize())).append(" send buffer");
+			sb.append(formatByteCount(sendBufferSize)).append(" send buffer");
 			return sb.toString();
 		}
 
-		private int calculateSendBufferSize() {
-			int sendBufferSize = 0;
-			for (WebSocketSession session : this.sessions.values()) {
-				ConcurrentWebSocketSessionDecorator concurrentSession = (ConcurrentWebSocketSessionDecorator) session;
-				sendBufferSize += concurrentSession.getBufferSize();
-			}
-			return sendBufferSize;
-		}
 	}
 
 }
