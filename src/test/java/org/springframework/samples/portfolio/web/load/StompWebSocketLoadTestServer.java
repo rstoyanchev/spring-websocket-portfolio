@@ -19,7 +19,6 @@ package org.springframework.samples.portfolio.web.load;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MessageConverter;
@@ -29,7 +28,6 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.samples.portfolio.config.WebSocketStats;
 import org.springframework.samples.portfolio.web.support.server.JettyWebSocketTestServer;
 import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
 import org.springframework.samples.portfolio.web.support.server.WebSocketTestServer;
@@ -43,7 +41,6 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
-import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -160,21 +157,6 @@ public class StompWebSocketLoadTestServer {
 			return new HomeController();
 		}
 
-		@Bean
-		public MBeanExporter exporter() {
-			Map<String, Object> beans = new HashMap<String, Object>();
-			beans.put("bean:name=webSocketMessageBrokerMonitor", monitor());
-			MBeanExporter exporter = new MBeanExporter();
-			exporter.setBeans(beans);
-			return exporter;
-		}
-
-		@Bean
-		public WebSocketStats monitor() {
-			return new WebSocketStats((SubProtocolWebSocketHandler) subProtocolWebSocketHandler(),
-					clientInboundChannelExecutor(), clientOutboundChannelExecutor(),
-					messageBrokerSockJsTaskScheduler());
-		}
 	}
 
 	@RestController

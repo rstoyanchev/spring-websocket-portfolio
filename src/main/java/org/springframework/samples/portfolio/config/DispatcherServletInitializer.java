@@ -16,14 +16,12 @@
 
 package org.springframework.samples.portfolio.config;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration.Dynamic;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-public class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
+public class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
@@ -32,7 +30,7 @@ public class DispatcherServletInitializer extends AbstractAnnotationConfigDispat
 
 	@Override
 	protected Class<?>[] getServletConfigClasses() {
-		return new Class<?>[] { WebConfig.class, WebSocketConfig.class, JmxConfig.class };
+		return new Class<?>[] { WebConfig.class, WebSocketConfig.class };
 	}
 
 	@Override
