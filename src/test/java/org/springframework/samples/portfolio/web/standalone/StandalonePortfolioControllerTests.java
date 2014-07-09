@@ -39,6 +39,7 @@ import org.springframework.test.util.JsonPathExpectationsHelper;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -104,6 +105,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setDestination("/app/positions");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
+		headers.setSessionAttributes(new HashMap<String, Object>());
 		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
 
 		this.annotationMethodMessageHandler.handleMessage(message);
@@ -137,6 +139,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setDestination("/app/trade");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
+		headers.setSessionAttributes(new HashMap<String, Object>());
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
 		this.annotationMethodMessageHandler.handleMessage(message);

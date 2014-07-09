@@ -36,7 +36,6 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.samples.portfolio.config.WebSocketConfig;
 import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.web.support.TestPrincipal;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -50,6 +49,7 @@ import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrate
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -127,7 +127,8 @@ public class ContextPortfolioControllerTests {
 		headers.setDestination("/app/positions");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
+		headers.setSessionAttributes(new HashMap<String, Object>());
+		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
 
 		this.clientOutboundChannelInterceptor.setIncludedDestinations("/app/positions");
 		this.clientOutboundChannelInterceptor.startRecording();
@@ -163,7 +164,8 @@ public class ContextPortfolioControllerTests {
 		headers.setDestination("/app/trade");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
+		headers.setSessionAttributes(new HashMap<String, Object>());
+		Message<byte[]> message = MessageBuilder.createMessage(payload, headers.getMessageHeaders());
 
 		this.brokerChannelInterceptor.setIncludedDestinations("/user/**");
 		this.brokerChannelInterceptor.startRecording();

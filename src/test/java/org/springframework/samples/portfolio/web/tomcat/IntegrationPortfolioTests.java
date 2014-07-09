@@ -298,7 +298,10 @@ public class IntegrationPortfolioTests {
 
 			@Override
 			public void handleError(Message<byte[]> message) {
-				failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
+				StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+				String error = "[Producer] " + accessor.getShortLogMessage(message.getPayload());
+				logger.error(error);
+				failure.set(new Exception(error));
 			}
 
 			@Override
