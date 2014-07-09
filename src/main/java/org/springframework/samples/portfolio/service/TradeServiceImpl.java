@@ -18,14 +18,23 @@ package org.springframework.samples.portfolio.service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.service.Trade.TradeAction;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import sun.net.www.MessageHeader;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -71,10 +80,13 @@ public class TradeServiceImpl implements TradeService {
 	@Scheduled(fixedDelay=1500)
 	public void sendTradeNotifications() {
 
+		Map<String, Object> map = new HashMap<>();
+		map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
+
 		for (TradeResult result : this.tradeResults) {
 			if (System.currentTimeMillis() >= (result.timestamp + 1500)) {
 				logger.debug("Sending position update: " + result.position);
-				this.messagingTemplate.convertAndSendToUser(result.user, "/queue/position-updates", result.position);
+				this.messagingTemplate.convertAndSendToUser(result.user, "/queue/position-updates", result.position, map);
 				this.tradeResults.remove(result);
 			}
 		}

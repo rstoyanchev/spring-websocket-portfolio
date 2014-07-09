@@ -15,15 +15,15 @@
 	</logger>
 	
 	<logger name="org.springframework.web">
-		<level value="warn" />
+		<level value="info" />
 	</logger>
 
 	<logger name="org.springframework.web.socket">
-		<level value="error" />
+		<level value="info" />
 	</logger>
 
     <logger name="org.springframework.messaging">
-        <level value="error" />
+        <level value="info" />
     </logger>
 
     <logger name="org.springframework.security">
@@ -36,6 +36,10 @@
 
     <logger name="org.springframework.samples.portfolio.web.load">
         <level value="debug" />
+    </logger>
+
+    <logger name="org.eclipse.jetty">
+        <level value="error" />
     </logger>
 
     <root>

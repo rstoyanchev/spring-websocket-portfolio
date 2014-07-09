@@ -43,6 +43,8 @@ public class WebSocketStompSession implements StompSession {
 	public static final byte[] EMPTY_PAYLOAD = new byte[0];
 
 
+	private final String id;
+
 	private final WebSocketSession webSocketSession;
 
 	private final MessageConverter messageConverter;
@@ -59,6 +61,7 @@ public class WebSocketStompSession implements StompSession {
 	public WebSocketStompSession(WebSocketSession webSocketSession, MessageConverter messageConverter) {
 		Assert.notNull(webSocketSession);
 		Assert.notNull(messageConverter);
+		this.id = webSocketSession.getId();
 		this.webSocketSession = webSocketSession;
 		this.messageConverter = messageConverter;
 	}
@@ -103,6 +106,6 @@ public class WebSocketStompSession implements StompSession {
 
 	@Override
 	public String toString() {
-		return "webSocketSession=" + this.webSocketSession;
+		return this.webSocketSession.toString();
 	}
 }
