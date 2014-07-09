@@ -8,8 +8,8 @@
 
 	<properties>
 		<org.springframework-version>4.1.0.BUILD-SNAPSHOT</org.springframework-version>
-		<!-- <org.springframework-version>4.0.5.RELEASE</org.springframework-version> -->
-		<!--<org.springframework-version>4.0.4.RELEASE</org.springframework-version>-->
+		 <!--<org.springframework-version>4.0.6.BUILD-SNAPSHOT</org.springframework-version>-->
+		<!--<org.springframework-version>4.0.5.RELEASE</org.springframework-version>-->
 		<org.springframework.security-version>3.2.0.RELEASE</org.springframework.security-version>
 	</properties>
 
@@ -183,6 +183,18 @@
             <artifactId>jetty-webapp</artifactId>
             <version>9.2.1.v20140609</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <version>9.2.1.v20140609</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.3.3</version>
         </dependency>
 
         <dependency>

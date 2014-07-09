@@ -132,7 +132,10 @@ public class StompWebSocketLoadTestServer {
 					new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy()) :
 					new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy());
 
-			registry.addEndpoint("/stomp").setHandshakeHandler(handler).withSockJS();
+			registry.addEndpoint("/stomp").setHandshakeHandler(handler).withSockJS()
+					.setStreamBytesLimit(512 * 1024)
+					.setHttpMessageCacheSize(1000)
+					.setDisconnectDelay(30 * 1000);
 		}
 
 		@Override

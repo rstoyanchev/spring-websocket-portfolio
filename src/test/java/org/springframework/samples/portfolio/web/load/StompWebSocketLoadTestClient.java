@@ -19,8 +19,14 @@ package org.springframework.samples.portfolio.web.load;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -31,9 +37,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.client.jetty.JettyWebSocketClient;
+import org.springframework.web.socket.sockjs.client.JettyXhrTransport;
+import org.springframework.web.socket.sockjs.client.RestTemplateXhrTransport;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -50,7 +64,7 @@ public class StompWebSocketLoadTestClient {
 
 	private static final int NUMBER_OF_USERS = 500;
 
-	private static final int NUMBER_OF_MESSAGES_TO_BROADCAST = 2000;
+	private static final int BROADCAST_MESSAGE_COUNT = 2000;
 
 	private static final int THREAD_POOL_SIZE = 25;
 
@@ -66,7 +80,7 @@ public class StompWebSocketLoadTestClient {
 			host = args[0];
 		}
 
-		int port = 21894;
+		int port = 59984;
 		if (args.length > 1) {
 			port = Integer.valueOf(args[1]);
 		}
@@ -88,18 +102,31 @@ public class StompWebSocketLoadTestClient {
 		JettyWebSocketClient webSocketClient = new JettyWebSocketClient(jettyClient);
 		webSocketClient.start();
 
+		HttpClient jettyHttpClient = new HttpClient();
+		jettyHttpClient.setMaxConnectionsPerDestination(1000);
+		jettyHttpClient.setExecutor(new QueuedThreadPool(1000));
+		jettyHttpClient.start();
+
+		List<Transport> transports = new ArrayList<>();
+		transports.add(new WebSocketTransport(webSocketClient));
+		transports.add(new JettyXhrTransport(jettyHttpClient));
+
+		SockJsClient sockJsClient = new SockJsClient(transports);
+
 		try {
-			URI uri = new URI("ws://" + host + ":" + port + "/stomp/websocket");
-			WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, webSocketClient);
+			URI uri = new URI("ws://" + host + ":" + port + "/stomp");
+			WebSocketStompClient stompClient = new WebSocketStompClient(uri, null, sockJsClient);
 			stompClient.setMessageConverter(new StringMessageConverter());
 
 			logger.debug("Connecting and subscribing " + NUMBER_OF_USERS + " users ");
 			StopWatch stopWatch = new StopWatch("STOMP Broker Relay WebSocket Load Tests");
 			stopWatch.start();
 
+			List<ConsumerStompMessageHandler> consumers = new ArrayList<>();
 			for (int i=0; i < NUMBER_OF_USERS; i++) {
-				stompClient.connect(new ConsumerStompMessageHandler(
-						NUMBER_OF_MESSAGES_TO_BROADCAST, connectLatch, subscribeLatch, messageLatch, disconnectLatch, failure));
+				consumers.add(new ConsumerStompMessageHandler(BROADCAST_MESSAGE_COUNT, connectLatch,
+						subscribeLatch, messageLatch, disconnectLatch, failure));
+				stompClient.connect(consumers.get(i));
 			}
 
 			if (failure.get() != null) {
@@ -115,29 +142,43 @@ public class StompWebSocketLoadTestClient {
 			stopWatch.stop();
 			logger.debug("Finished: " + stopWatch.getLastTaskTimeMillis() + " millis");
 
-			logger.debug("Broadcasting " + NUMBER_OF_MESSAGES_TO_BROADCAST + " messages to " + NUMBER_OF_USERS + " users ");
+			logger.debug("Broadcasting " + BROADCAST_MESSAGE_COUNT + " messages to " + NUMBER_OF_USERS + " users ");
 			stopWatch.start();
 
-			stompClient.connect(new ProducerStompMessageHandler(NUMBER_OF_MESSAGES_TO_BROADCAST, failure));
+			ProducerStompMessageHandler producer = new ProducerStompMessageHandler(BROADCAST_MESSAGE_COUNT, failure);
+			stompClient.connect(producer);
 
 			if (failure.get() != null) {
 				throw new AssertionError("Test failed", failure.get());
 			}
-			if (!messageLatch.await(5 * 60 * 1000, TimeUnit.MILLISECONDS)) {
+			if (!messageLatch.await(1 * 60 * 1000, TimeUnit.MILLISECONDS)) {
+				for (ConsumerStompMessageHandler consumer : consumers) {
+					if (consumer.messageCount.get() < consumer.expectedMessageCount) {
+						logger.debug(consumer);
+					}
+				}
+			}
+			if (!messageLatch.await(1 * 60 * 1000, TimeUnit.MILLISECONDS)) {
 				fail("Not all handlers received every message, remaining: " + messageLatch.getCount());
 			}
+
+			producer.session.disconnect();
 			if (!disconnectLatch.await(5000, TimeUnit.MILLISECONDS)) {
 				fail("Not all disconnects completed, remaining: " + disconnectLatch.getCount());
 			}
 
 			stopWatch.stop();
 			logger.debug("Finished: " + stopWatch.getLastTaskTimeMillis() + " millis");
+
+			System.out.println("\nPress any key to exit...");
+			System.in.read();
 		}
 		catch (Throwable t) {
 			t.printStackTrace();
 		}
 		finally {
 			webSocketClient.stop();
+			jettyHttpClient.stop();
 		}
 
 		logger.debug("Exiting");
@@ -199,7 +240,10 @@ public class StompWebSocketLoadTestClient {
 
 		@Override
 		public void handleError(Message<byte[]> message) {
-			this.failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
+			StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+			String error = "[Consumer] " + accessor.getShortLogMessage(message.getPayload());
+			logger.error(error);
+			this.failure.set(new Exception(error));
 		}
 
 		@Override
@@ -207,12 +251,18 @@ public class StompWebSocketLoadTestClient {
 			logger.trace("Disconnected in " + this.stompSession);
 			this.disconnectLatch.countDown();
 		}
+
+		@Override
+		public String toString() {
+			return "ConsumerStompMessageHandler[messageCount=" + this.messageCount + ", " + this.stompSession +  "]";
+		}
 	}
 
 	private static class ProducerStompMessageHandler implements StompMessageHandler {
 
 		private final int numberOfMessagesToBroadcast;
 		private final AtomicReference<Throwable> failure;
+		private StompSession session;
 
 		public ProducerStompMessageHandler(int numberOfMessagesToBroadcast, AtomicReference<Throwable> failure) {
 			this.numberOfMessagesToBroadcast = numberOfMessagesToBroadcast;
@@ -221,12 +271,15 @@ public class StompWebSocketLoadTestClient {
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaderAccessor headers) {
+			this.session = session;
+			int i =0;
 			try {
-				for (int i=0; i < numberOfMessagesToBroadcast; i++) {
+				for ( ; i < numberOfMessagesToBroadcast; i++) {
 					session.send("/app/greeting", "hello");
 				}
 			}
 			catch (Throwable t) {
+				logger.error("Message sending failed at " + i, t);
 				failure.set(t);
 			}
 		}
@@ -239,7 +292,10 @@ public class StompWebSocketLoadTestClient {
 
 		@Override
 		public void handleError(Message<byte[]> message) {
-			failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
+			StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+			String error = "[Producer] " + accessor.getShortLogMessage(message.getPayload());
+			logger.error(error);
+			this.failure.set(new Exception(error));
 		}
 
 		@Override
