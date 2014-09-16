@@ -5,6 +5,6 @@ if [ -z "$GLASSFISH4_HOME" ]; then
     exit 1
 fi
 
-mvn -DskipTests clean package
+mvn -U -DskipTests clean package
 
 $GLASSFISH4_HOME/bin/asadmin deploy --force=true target/spring-websocket-portfolio.war
