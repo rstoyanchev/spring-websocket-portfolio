@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
@@ -160,6 +161,12 @@ public class StompWebSocketLoadTestServer {
 			return new HomeController();
 		}
 
+		@Override
+		public WebSocketMessageBrokerStats webSocketMessageBrokerStats() {
+			WebSocketMessageBrokerStats stats = super.webSocketMessageBrokerStats();
+			stats.setLoggingPeriod(5 * 1000);
+			return stats;
+		}
 	}
 
 	@RestController

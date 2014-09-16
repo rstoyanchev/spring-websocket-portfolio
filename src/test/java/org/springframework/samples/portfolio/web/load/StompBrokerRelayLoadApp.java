@@ -161,8 +161,8 @@ public class StompBrokerRelayLoadApp {
 			StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.CONNECT);
 			headerAccessor.setHeartbeat(0, 0);
 			headerAccessor.setSessionId(sessionIds.get(i));
-			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
-//			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
+//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
 
@@ -193,8 +193,8 @@ public class StompBrokerRelayLoadApp {
 			headerAccessor.setSubscriptionId(subscriptionIds.get(i));
 			headerAccessor.setDestination(DEFAULT_DESTINATION);
 			headerAccessor.setReceipt(receiptIds.get(i));
-			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
-//			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
+//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
 
@@ -250,8 +250,8 @@ public class StompBrokerRelayLoadApp {
 		for (int i=0; i < sessionIds.size(); i++) {
 			StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.DISCONNECT);
 			headerAccessor.setSessionId(sessionIds.get(i));
-			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
-//			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
+//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
+			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
 		this.stopWatch.stop();
