@@ -131,7 +131,7 @@ public class WebSocketStompClient implements StompClient {
 				else if (StompCommand.ERROR.equals(headers.getCommand())) {
 					this.stompMessageHandler.handleError(message);
 				}
-				else if (StompCommand.ERROR.equals(headers.getCommand())) {
+				else if (StompCommand.DISCONNECT.equals(headers.getCommand())) {
 					this.stompMessageHandler.afterDisconnected();
 				}
 				else {
