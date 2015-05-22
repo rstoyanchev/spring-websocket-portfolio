@@ -16,10 +16,17 @@
 
 package org.springframework.samples.portfolio.web.context;
 
+import static org.junit.Assert.*;
+
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,47 +52,28 @@ import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
-
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 
 /**
  * Tests for PortfolioController that rely on the Spring TestContext framework to
- * load the actual Spring configuration.
+ * load the actual Spring configuration. The test strategy here is to test the
+ * behavior of controllers using the actual Spring configuration while using
+ * the TestContext framework ensures that Spring configuration is loaded only
+ * once per test class.
  *
- * Tests can create a Spring {@link org.springframework.messaging.Message} that
- * represents a STOMP frame and send it directly to the "clientInboundChannel"
- * for processing. In effect this bypasses the phase where a WebSocket message
- * is received and parsed. Instead tests must set the session id and user
- * headers of the Message.
+ * <p>The test manually creates messages representing STOMP frames and sends them
+ * to the "clientInboundChannel" simulating clients by setting the session id and
+ * user headers of the message accordingly.
  *
- * Test ChannelInterceptor implementations are installed on the "brokerChannel"
- * and the "clientOutboundChannel" in order to detect messages sent through
+ * <p>Test ChannelInterceptor implementations are installed on the "brokerChannel"
+ * and the "clientOutboundChannel" in order to capture messages sent through
  * them. Although not the case here, often a controller method will
  * not send any messages at all. In such cases it might be necessary to inject
- * the controller with "mock" services in order to assert the outcome.
+ * the controller with "mock" services in order to verify message handling.
  *
- * Note the (optional) use of TestConfig, which removes MessageHandler
- * subscriptions to MessageChannel's for all handlers found in the
- * ApplicationContext except the one for the one delegating to annotated message
- * handlers. This is done to reduce additional processing and additional
- * messages not related to the test.
- *
- * The test strategy here is to test the behavior of controllers using the
- * actual Spring configuration while using the TestContext framework ensures
- * that Spring configuration is loaded only once per test class. This strategy
- * is not an end-to-end test and does not replace the need for full-on
- * integration testing -- much like we can write integration tests for the
- * persistence layer, tests here ensure the web layer (including controllers
- * and Spring configuration) are well tested using tests that are a little
- * simpler and easier to write and debug than full, end-to-end integration tests.
+ * <p>Note the (optional) use of TestConfig, which removes MessageHandler
+ * subscriptions to message channels except the handler that delegates to
+ * annotated controller methods. This allows focusing on controllers.
  *
  * @author Rossen Stoyanchev
  */
@@ -111,8 +99,8 @@ public class ContextPortfolioControllerTests {
 	@Before
 	public void setUp() throws Exception {
 
-		this.brokerChannelInterceptor = new TestChannelInterceptor(false);
-		this.clientOutboundChannelInterceptor = new TestChannelInterceptor(false);
+		this.brokerChannelInterceptor = new TestChannelInterceptor();
+		this.clientOutboundChannelInterceptor = new TestChannelInterceptor();
 
 		this.brokerChannel.addInterceptor(this.brokerChannelInterceptor);
 		this.clientOutboundChannel.addInterceptor(this.clientOutboundChannelInterceptor);
@@ -131,8 +119,6 @@ public class ContextPortfolioControllerTests {
 		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
 
 		this.clientOutboundChannelInterceptor.setIncludedDestinations("/app/positions");
-		this.clientOutboundChannelInterceptor.startRecording();
-
 		this.clientInboundChannel.send(message);
 
 		Message<?> reply = this.clientOutboundChannelInterceptor.awaitMessage(5);
@@ -168,8 +154,6 @@ public class ContextPortfolioControllerTests {
 		Message<byte[]> message = MessageBuilder.createMessage(payload, headers.getMessageHeaders());
 
 		this.brokerChannelInterceptor.setIncludedDestinations("/user/**");
-		this.brokerChannelInterceptor.startRecording();
-
 		this.clientInboundChannel.send(message);
 
 		Message<?> positionUpdate = this.brokerChannelInterceptor.awaitMessage(5);
@@ -216,6 +200,7 @@ public class ContextPortfolioControllerTests {
 	 * related to the test.
 	 */
 	@Configuration
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	static class TestConfig implements ApplicationListener<ContextRefreshedEvent> {
 
 		@Autowired

@@ -16,9 +16,16 @@
 
 package org.springframework.samples.portfolio.web.standalone;
 
+import static org.junit.Assert.*;
+
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -36,13 +43,6 @@ import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.web.PortfolioController;
 import org.springframework.samples.portfolio.web.support.TestPrincipal;
 import org.springframework.test.util.JsonPathExpectationsHelper;
-
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests for PortfolioController that instantiate directly the minimum
@@ -74,7 +74,7 @@ public class StandalonePortfolioControllerTests {
 
 	private TestMessageChannel clientOutboundChannel;
 
-	private TestSimpAnnotationMethodMessageHandler annotationMethodMessageHandler;
+	private TestAnnotationMethodHandler annotationMethodHandler;
 
 
 	@Before
@@ -86,14 +86,14 @@ public class StandalonePortfolioControllerTests {
 
 		this.clientOutboundChannel = new TestMessageChannel();
 
-		this.annotationMethodMessageHandler = new TestSimpAnnotationMethodMessageHandler(
+		this.annotationMethodHandler = new TestAnnotationMethodHandler(
 				new TestMessageChannel(), clientOutboundChannel, new SimpMessagingTemplate(new TestMessageChannel()));
 
-		this.annotationMethodMessageHandler.registerHandler(controller);
-		this.annotationMethodMessageHandler.setDestinationPrefixes(Arrays.asList("/app"));
-		this.annotationMethodMessageHandler.setMessageConverter(new MappingJackson2MessageConverter());
-		this.annotationMethodMessageHandler.setApplicationContext(new StaticApplicationContext());
-		this.annotationMethodMessageHandler.afterPropertiesSet();
+		this.annotationMethodHandler.registerHandler(controller);
+		this.annotationMethodHandler.setDestinationPrefixes(Arrays.asList("/app"));
+		this.annotationMethodHandler.setMessageConverter(new MappingJackson2MessageConverter());
+		this.annotationMethodHandler.setApplicationContext(new StaticApplicationContext());
+		this.annotationMethodHandler.afterPropertiesSet();
 	}
 
 
@@ -108,7 +108,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setSessionAttributes(new HashMap<String, Object>());
 		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
 
-		this.annotationMethodMessageHandler.handleMessage(message);
+		this.annotationMethodHandler.handleMessage(message);
 
 		assertEquals(1, this.clientOutboundChannel.getMessages().size());
 		Message<?> reply = this.clientOutboundChannel.getMessages().get(0);
@@ -142,7 +142,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setSessionAttributes(new HashMap<String, Object>());
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
-		this.annotationMethodMessageHandler.handleMessage(message);
+		this.annotationMethodHandler.handleMessage(message);
 
 		assertEquals(1, this.tradeService.getTrades().size());
 		Trade actual = this.tradeService.getTrades().get(0);
@@ -159,12 +159,12 @@ public class StandalonePortfolioControllerTests {
 	 * method for manually registering a controller, rather than having it
 	 * auto-discovered in the Spring ApplicationContext.
 	 */
-	private static class TestSimpAnnotationMethodMessageHandler extends SimpAnnotationMethodMessageHandler {
+	private static class TestAnnotationMethodHandler extends SimpAnnotationMethodMessageHandler {
 
-		public TestSimpAnnotationMethodMessageHandler(SubscribableChannel clientInboundChannel,
-				MessageChannel clientOutboundChannel, SimpMessageSendingOperations brokerTemplate) {
+		public TestAnnotationMethodHandler(SubscribableChannel inChannel, MessageChannel outChannel,
+				SimpMessageSendingOperations brokerTemplate) {
 
-			super(clientInboundChannel, clientOutboundChannel, brokerTemplate);
+			super(inChannel, outChannel, brokerTemplate);
 		}
 
 		public void registerHandler(Object handler) {

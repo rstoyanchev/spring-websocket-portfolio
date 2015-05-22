@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 /**
- * A ChannelInterceptor that caches mesages.
+ * A ChannelInterceptor that caches messages.
  */
 public class TestChannelInterceptor extends ChannelInterceptorAdapter {
 
@@ -42,27 +41,9 @@ public class TestChannelInterceptor extends ChannelInterceptorAdapter {
 
 	private final PathMatcher matcher = new AntPathMatcher();
 
-	private volatile boolean isRecording;
-
-
-	/**
-	 * @param autoStart whether to start recording messages removing the need to
-	 * 	call {@link #startRecording()} explicitly
-	 */
-	public TestChannelInterceptor(boolean autoStart) {
-		this.isRecording = autoStart;
-	}
 
 	public void setIncludedDestinations(String... patterns) {
 		this.destinationPatterns.addAll(Arrays.asList(patterns));
-	}
-
-	public void startRecording() {
-		this.isRecording = true;
-	}
-
-	public void stopRecording() {
-		this.isRecording = false;
 	}
 
 	/**
@@ -74,24 +55,20 @@ public class TestChannelInterceptor extends ChannelInterceptorAdapter {
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-
-		if (this.isRecording) {
-			if (this.destinationPatterns.isEmpty()) {
-				this.messages.add(message);
-			}
-			else {
-				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
-				if (headers.getDestination() != null) {
-					for (String pattern : this.destinationPatterns) {
-						if (this.matcher.match(pattern, headers.getDestination())) {
-							this.messages.add(message);
-							break;
-						}
+		if (this.destinationPatterns.isEmpty()) {
+			this.messages.add(message);
+		}
+		else {
+			StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
+			if (headers.getDestination() != null) {
+				for (String pattern : this.destinationPatterns) {
+					if (this.matcher.match(pattern, headers.getDestination())) {
+						this.messages.add(message);
+						break;
 					}
 				}
 			}
 		}
-
 		return message;
 	}
 

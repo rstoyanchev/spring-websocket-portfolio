@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web.support.server;
+package org.springframework.samples.portfolio.web.support;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;

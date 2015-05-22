@@ -17,6 +17,14 @@
 package org.springframework.samples.portfolio.web.load;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -28,9 +36,9 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.samples.portfolio.web.support.server.JettyWebSocketTestServer;
-import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
-import org.springframework.samples.portfolio.web.support.server.WebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.JettyWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.TomcatWebSocketTestServer;
+import org.springframework.samples.portfolio.web.support.WebSocketTestServer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.SocketUtils;
@@ -46,19 +54,11 @@ import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 
 public class StompWebSocketLoadTestServer {
 
 	// When false, Tomcat is used
-	public static final boolean USE_JETTY = true;
+	public static final boolean USE_JETTY = false;
 
 	private static final StringMessageConverter MESSAGE_CONVERTER;
 

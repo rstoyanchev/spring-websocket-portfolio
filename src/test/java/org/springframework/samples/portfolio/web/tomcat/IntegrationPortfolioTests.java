@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,22 @@
 
 package org.springframework.samples.portfolio.web.tomcat;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,18 +43,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.samples.portfolio.PortfolioPosition;
 import org.springframework.samples.portfolio.config.DispatcherServletInitializer;
 import org.springframework.samples.portfolio.config.WebConfig;
 import org.springframework.samples.portfolio.config.WebSecurityInitializer;
 import org.springframework.samples.portfolio.service.Trade;
-import org.springframework.samples.portfolio.web.support.client.StompMessageHandler;
-import org.springframework.samples.portfolio.web.support.client.StompSession;
-import org.springframework.samples.portfolio.web.support.server.TomcatWebSocketTestServer;
-import org.springframework.samples.portfolio.web.support.client.WebSocketStompClient;
+import org.springframework.samples.portfolio.web.support.TomcatWebSocketTestServer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
@@ -55,23 +70,13 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.RestTemplateXhrTransport;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
-
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.Assert.fail;
 
 /**
  * End-to-end integration tests that run an embedded Tomcat server and establish
@@ -182,55 +187,42 @@ public class IntegrationPortfolioTests {
 	public void getPositions() throws Exception {
 
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> failure = new AtomicReference<>();
 
-		URI uri = new URI("ws://localhost:" + port + "/portfolio");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, sockJsClient);
-		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-
-		stompClient.connect(new StompMessageHandler() {
-
-			private StompSession stompSession;
+		StompSessionHandler handler = new AbstractTestSessionHandler(failure) {
 
 			@Override
-			public void afterConnected(StompSession stompSession, StompHeaderAccessor headers) {
-				stompSession.subscribe("/app/positions", null);
-				this.stompSession = stompSession;
+			public void afterConnected(final StompSession session, StompHeaders connectedHeaders) {
+				session.subscribe("/app/positions", new StompFrameHandler() {
+					@Override
+					public Type getPayloadType(StompHeaders headers) {
+						return byte[].class;
+					}
+
+					@Override
+					public void handleFrame(StompHeaders headers, Object payload) {
+						String json = new String((byte[]) payload);
+						logger.debug("Got " + json);
+						try {
+							new JsonPathExpectationsHelper("$[0].company").assertValue(json, "Citrix Systems, Inc.");
+							new JsonPathExpectationsHelper("$[1].company").assertValue(json, "Dell Inc.");
+							new JsonPathExpectationsHelper("$[2].company").assertValue(json, "Microsoft");
+							new JsonPathExpectationsHelper("$[3].company").assertValue(json, "Oracle");
+						}
+						catch (Throwable t) {
+							failure.set(t);
+						}
+						finally {
+							session.disconnect();
+							latch.countDown();
+						}
+					}
+				});
 			}
-			@Override
-			public void handleMessage(Message<byte[]> message) {
-				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
-				if (!"/app/positions".equals(headers.getDestination())) {
-					 failure.set(new IllegalStateException("Unexpected message: " + message));
-				}
-				logger.debug("Got " + new String((byte[]) message.getPayload()));
-				try {
-					String json = new String((byte[]) message.getPayload(), Charset.forName("UTF-8"));
-					new JsonPathExpectationsHelper("$[0].company").assertValue(json, "Citrix Systems, Inc.");
-					new JsonPathExpectationsHelper("$[1].company").assertValue(json, "Dell Inc.");
-					new JsonPathExpectationsHelper("$[2].company").assertValue(json, "Microsoft");
-					new JsonPathExpectationsHelper("$[3].company").assertValue(json, "Oracle");
-				}
-				catch (Throwable t) {
-					failure.set(t);
-				}
-				finally {
-					this.stompSession.disconnect();
-					latch.countDown();
-				}
-			}
+		};
 
-			@Override
-			public void handleError(Message<byte[]> message) {
-				failure.set(new Exception(new String(message.getPayload(), Charset.forName("UTF-8"))));
-			}
-
-			@Override
-			public void handleReceipt(String receiptId) {}
-
-			@Override
-			public void afterDisconnected() {}
-		});
+		WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+		stompClient.connect("ws://localhost:{port}/portfolio", this.headers, handler, port);
 
 		if (failure.get() != null) {
 			throw new AssertionError("", failure.get());
@@ -247,69 +239,51 @@ public class IntegrationPortfolioTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
-		URI uri = new URI("ws://localhost:" + port + "/portfolio");
-		WebSocketStompClient stompClient = new WebSocketStompClient(uri, this.headers, sockJsClient);
-		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-
-		stompClient.connect(new StompMessageHandler() {
-
-			private StompSession stompSession;
+		StompSessionHandler handler = new AbstractTestSessionHandler(failure) {
 
 			@Override
-			public void afterConnected(StompSession stompSession, StompHeaderAccessor headers) {
+			public void afterConnected(final StompSession session, StompHeaders connectedHeaders) {
+				session.subscribe("/user/queue/position-updates", new StompFrameHandler() {
+					@Override
+					public Type getPayloadType(StompHeaders headers) {
+						return PortfolioPosition.class;
+					}
 
-				this.stompSession = stompSession;
-				this.stompSession.subscribe("/user/queue/position-updates", null);
+					@Override
+					public void handleFrame(StompHeaders headers, Object payload) {
+						PortfolioPosition position = (PortfolioPosition) payload;
+						logger.debug("Got " + position);
+						try {
+							assertEquals(75, position.getShares());
+							assertEquals("Dell Inc.", position.getCompany());
+						}
+						catch (Throwable t) {
+							failure.set(t);
+						}
+						finally {
+							session.disconnect();
+							latch.countDown();
+						}
+					}
+				});
 
 				try {
 					Trade trade = new Trade();
 					trade.setAction(Trade.TradeAction.Buy);
 					trade.setTicker("DELL");
 					trade.setShares(25);
-
-					this.stompSession.send("/app/trade", trade);
+					session.send("/app/trade", trade);
 				}
 				catch (Throwable t) {
 					failure.set(t);
 					latch.countDown();
 				}
 			}
+		};
 
-			@Override
-			public void handleMessage(Message<byte[]> message) {
-				StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
-				if (!"/user/queue/position-updates".equals(headers.getDestination())) {
-					failure.set(new IllegalStateException("Unexpected message: " + message));
-				}
-				logger.debug("Got " + new String((byte[]) message.getPayload()));
-				try {
-					String json = new String((byte[]) message.getPayload(), Charset.forName("UTF-8"));
-					new JsonPathExpectationsHelper("$.shares").assertValue(json, 75);
-					new JsonPathExpectationsHelper("$.company").assertValue(json, "Dell Inc.");
-				}
-				catch (Throwable t) {
-					failure.set(t);
-				}
-				finally {
-					this.stompSession.disconnect();
-					latch.countDown();
-				}
-			}
-
-			@Override
-			public void handleError(Message<byte[]> message) {
-				StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-				String error = "[Producer] " + accessor.getShortLogMessage(message.getPayload());
-				logger.error(error);
-				failure.set(new Exception(error));
-			}
-
-			@Override
-			public void handleReceipt(String receiptId) {}
-
-			@Override
-			public void afterDisconnected() {}
-		});
+		WebSocketStompClient stompClient = new WebSocketStompClient(sockJsClient);
+		stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+		stompClient.connect("ws://localhost:{port}/portfolio", headers, handler, port);
 
 		if (!latch.await(10, TimeUnit.SECONDS)) {
 			fail("Trade confirmation not received");
@@ -352,6 +326,34 @@ public class IntegrationPortfolioTests {
 //			registry.enableSimpleBroker("/queue/", "/topic/");
 			registry.enableStompBrokerRelay("/queue/", "/topic/");
 			registry.setApplicationDestinationPrefixes("/app");
+		}
+	}
+
+	private static abstract class AbstractTestSessionHandler extends StompSessionHandlerAdapter {
+
+		private final AtomicReference<Throwable> failure;
+
+
+		public AbstractTestSessionHandler(AtomicReference<Throwable> failure) {
+			this.failure = failure;
+		}
+
+		@Override
+		public void handleFrame(StompHeaders headers, Object payload) {
+			logger.error("STOMP ERROR frame: " + headers.toString());
+			this.failure.set(new Exception(headers.toString()));
+		}
+
+		@Override
+		public void handleException(StompSession s, StompCommand c, StompHeaders h, byte[] p, Throwable ex) {
+			logger.error("Handler exception", ex);
+			this.failure.set(ex);
+		}
+
+		@Override
+		public void handleTransportError(StompSession session, Throwable ex) {
+			logger.error("Transport failure", ex);
+			this.failure.set(ex);
 		}
 	}
 

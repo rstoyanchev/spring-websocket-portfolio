@@ -20,22 +20,32 @@ import java.math.BigDecimal;
 
 public class Quote {
 
-	private final String ticker;
+	private String ticker;
 
-	private final BigDecimal price;
-
+	private BigDecimal price;
 
 	public Quote(String ticker, BigDecimal price) {
 		this.ticker = ticker;
 		this.price = price;
 	}
 
+	private Quote() {
+	}
+
 	public String getTicker() {
 		return this.ticker;
 	}
 
+	public void setTicker(String ticker) {
+		this.ticker = ticker;
+	}
+
 	public BigDecimal getPrice() {
 		return this.price;
+	}
+
+	public void setPrice(BigDecimal price) {
+		this.price = price;
 	}
 
 	@Override

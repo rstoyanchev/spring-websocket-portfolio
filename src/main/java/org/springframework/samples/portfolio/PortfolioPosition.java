@@ -18,15 +18,15 @@ package org.springframework.samples.portfolio;
 
 public class PortfolioPosition {
 
-	private final String company;
+	private String company;
 
-	private final String ticker;
+	private String ticker;
 
-	private final double price;
+	private double price;
 
-	private final int shares;
+	private int shares;
 
-	private final long updateTime;
+	private long updateTime;
 
 
 	public PortfolioPosition(String company, String ticker, double price, int shares) {
@@ -45,24 +45,47 @@ public class PortfolioPosition {
 		this.updateTime = System.currentTimeMillis();
 	}
 
+	private PortfolioPosition() {
+	}
+
 	public String getCompany() {
 		return this.company;
+	}
+
+	public void setCompany(String company) {
+		this.company = company;
 	}
 
 	public String getTicker() {
 		return this.ticker;
 	}
 
+	public void setTicker(String ticker) {
+		this.ticker = ticker;
+	}
+
 	public double getPrice() {
 		return this.price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
 	}
 
 	public int getShares() {
 		return this.shares;
 	}
 
+	public void setShares(int shares) {
+		this.shares = shares;
+	}
+
 	public long getUpdateTime() {
 		return this.updateTime;
+	}
+
+	public void setUpdateTime(long updateTime) {
+		this.updateTime = updateTime;
 	}
 
 	@Override

@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.portfolio.web.support.client;
+package org.springframework.samples.portfolio.web.support;
+
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.WebApplicationContext;
 
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+public interface WebSocketTestServer {
 
+	int getPort();
 
-public interface StompMessageHandler {
+	void deployConfig(WebApplicationContext cxt);
 
-	void afterConnected(StompSession session, StompHeaderAccessor headers);
+	void undeployConfig();
 
-	void handleMessage(Message<byte[]> message);
+	void start() throws Exception;
 
-	void handleReceipt(String receiptId);
-
-	void handleError(Message<byte[]> message);
-
-	void afterDisconnected();
+	void stop() throws Exception;
 
 }

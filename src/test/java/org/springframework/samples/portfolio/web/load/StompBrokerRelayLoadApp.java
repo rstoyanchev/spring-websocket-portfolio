@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,16 @@
 
 package org.springframework.samples.portfolio.web.load;
 
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.broker.BrokerAvailabilityEvent;
@@ -32,54 +41,36 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.PathMatcher;
 import org.springframework.util.StopWatch;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 /**
- * A load test measuring the throughput of messages sent through the
+ * A load app that measures the throughput of messages sent through the
  * {@link org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler}
  * as well as the resulting messages broadcast back from the message broker.
  *
- * <p>This is not a full end-to-end involving WebSocket clients. Instead the test
- * creates Spring {@link org.springframework.messaging.Message}s representing
- * STOMP frames and sends those directly to the "clientInboundChannel"
- * (for connecting, subscribing, and disconnecting) and to the "brokerChannel"
- * (message broadcasting). Similarly messages received from the message broker
- * are recorded by registering a
- * {@link StompBrokerRelayLoadApp.TestMessageHandler}
- * on the "clientOutboundChannel".
+ * <p>This is not a full end-to-end app and does not involve WebSocket clients.
+ * The test manually creates messages representing STOMP frames and sends them
+ * to the "clientInboundChannel" (simulating clients) and to the "brokerChannel"
+ * (for broadcasting messages). Messages received from the message broker are
+ * captured through a {@link StompBrokerRelayLoadApp.TestMessageHandler}
+ * subscribed to the "clientOutboundChannel".
  *
  * <p>The test can be configured with the number of users to simulate as well
  * as the number of messages to broadcast. Note that increasing the number of
  * users above certain levels may require configuration changes in the broker
- * (for example to increase the file descriptor limit on RabbitMQ). If such an
- * issue is suspected, check the message broker log files.
+ * (e.g. increase file descriptor limits on RabbitMQ). Check the message broker
+ * log files for error messages.
  *
  * @author Rossen Stoyanchev
  */
-
 public class StompBrokerRelayLoadApp {
 
-
-	public static final int NUMBER_OF_USERS = 750;
+	public static final int NUMBER_OF_USERS = 250;
 
 	public static final int NUMBER_OF_MESSAGES_TO_BROADCAST = 100;
 
@@ -88,16 +79,11 @@ public class StompBrokerRelayLoadApp {
 
 	private AbstractSubscribableChannel clientInboundChannel;
 
-	private AbstractSubscribableChannel clientOutboundChannel;
-
 	private TestMessageHandler clientOutboundMessageHandler;
 
 	private SimpMessagingTemplate brokerMessagingTemplate;
 
-	private CountDownLatch brokerAvailabilityLatch;
-
 	private StopWatch stopWatch;
-
 
 
 	public static void main(String[] args) throws InterruptedException {
@@ -121,33 +107,33 @@ public class StompBrokerRelayLoadApp {
 		cxt.refresh();
 
 		this.clientInboundChannel = cxt.getBean("clientInboundChannel", AbstractSubscribableChannel.class);
-		this.clientOutboundChannel = cxt.getBean("clientOutboundChannel", AbstractSubscribableChannel.class);
 		this.clientOutboundMessageHandler = cxt.getBean(TestMessageHandler.class);
 		this.brokerMessagingTemplate = cxt.getBean(SimpMessagingTemplate.class);
 
 		this.stopWatch = new StopWatch("STOMP Broker Relay Load Tests");
 
-		this.brokerAvailabilityLatch = cxt.getBean(CountDownLatch.class);
+		CountDownLatch brokerAvailabilityLatch = cxt.getBean(CountDownLatch.class);
 		brokerAvailabilityLatch.await(5000, TimeUnit.MILLISECONDS);
+
+		List<String> sessionIds = generateIds("session", NUMBER_OF_USERS);
+		List<String> subscriptionIds = generateIds("subscription", NUMBER_OF_USERS);
+		List<String> receiptIds = generateIds("receipt", NUMBER_OF_USERS);
+
+		connect(sessionIds);
+		subscribe(sessionIds, subscriptionIds, receiptIds);
 
 		Person person = new Person();
 		person.setName("Joe");
 
-		List<String> sessionIds = initIdentifiers("session", NUMBER_OF_USERS);
-		List<String> subscriptionIds = initIdentifiers("subscription", NUMBER_OF_USERS);
-		List<String> receiptIds = initIdentifiers("receipt", NUMBER_OF_USERS);
-
-		connect(sessionIds);
-		subscribe(sessionIds, subscriptionIds, receiptIds);
 		broadcast(DEFAULT_DESTINATION, person, NUMBER_OF_MESSAGES_TO_BROADCAST, NUMBER_OF_USERS);
-		disconnect(sessionIds);
 
+		disconnect(sessionIds);
 	}
 
-	private List<String> initIdentifiers(String prefix, int howMany) {
-		List<String> ids = new ArrayList<>(howMany);
-		for (int i=0; i < howMany; i++) {
-			ids.add(prefix + i);
+	private List<String> generateIds(String idPrefix, int count) {
+		List<String> ids = new ArrayList<>(count);
+		for (int i=0; i < count; i++) {
+			ids.add(idPrefix + i);
 		}
 		return Collections.unmodifiableList(ids);
 	}
@@ -157,11 +143,10 @@ public class StompBrokerRelayLoadApp {
 		System.out.print("Connecting " + sessionIds.size() + " users ");
 		this.stopWatch.start();
 
-		for (int i = 0; i < sessionIds.size(); i++) {
+		for (String sessionId : sessionIds) {
 			StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.CONNECT);
 			headerAccessor.setHeartbeat(0, 0);
-			headerAccessor.setSessionId(sessionIds.get(i));
-//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
+			headerAccessor.setSessionId(sessionId);
 			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
@@ -182,7 +167,8 @@ public class StompBrokerRelayLoadApp {
 		System.out.println(" (" + this.stopWatch.getLastTaskTimeMillis() + " millis)");
 	}
 
-	private void subscribe(List<String> sessionIds, List<String> subscriptionIds, List<String> receiptIds) throws InterruptedException {
+	private void subscribe(List<String> sessionIds, List<String> subscriptionIds, List<String> receiptIds)
+			throws InterruptedException {
 
 		System.out.print("Subscribing all users");
 		this.stopWatch.start();
@@ -193,7 +179,6 @@ public class StompBrokerRelayLoadApp {
 			headerAccessor.setSubscriptionId(subscriptionIds.get(i));
 			headerAccessor.setDestination(DEFAULT_DESTINATION);
 			headerAccessor.setReceipt(receiptIds.get(i));
-//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
 			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
@@ -247,10 +232,9 @@ public class StompBrokerRelayLoadApp {
 		System.out.print("Disconnecting... ");
 		this.stopWatch.start("Disconnect");
 
-		for (int i=0; i < sessionIds.size(); i++) {
+		for (String sessionId : sessionIds) {
 			StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.DISCONNECT);
-			headerAccessor.setSessionId(sessionIds.get(i));
-//			Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headerAccessor).build();
+			headerAccessor.setSessionId(sessionId);
 			Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headerAccessor.getMessageHeaders());
 			this.clientInboundChannel.send(message);
 		}
@@ -265,6 +249,11 @@ public class StompBrokerRelayLoadApp {
 
 		private final CountDownLatch brokerAvailabilityLatch = new CountDownLatch(1);
 
+
+		@Override
+		protected SimpUserRegistry createLocalUserRegistry() {
+			return new DefaultSimpUserRegistry();
+		}
 
 		@Override
 		protected void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -283,10 +272,11 @@ public class StompBrokerRelayLoadApp {
 
 		@Bean
 		public TestMessageHandler clientOutboundMessageHandler() {
-			return new TestMessageHandler(true);
+			return new TestMessageHandler();
 		}
 
 		@Bean
+		@SuppressWarnings("unused")
 		public CountDownLatch getBrokerAvailabilityLatch() {
 			return this.brokerAvailabilityLatch;
 		}
@@ -312,6 +302,7 @@ public class StompBrokerRelayLoadApp {
 
 	}
 
+	@SuppressWarnings("unused")
 	static class Person {
 
 		private String name;
@@ -330,32 +321,6 @@ public class StompBrokerRelayLoadApp {
 
 		private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
-		private final List<String> destinationPatterns = new ArrayList<>();
-
-		private final PathMatcher matcher = new AntPathMatcher();
-
-		private volatile boolean isRecording;
-
-
-		/**
-		 * @param autoStart whether to start recording messages removing the need to
-		 * 	call {@link #startRecording()} explicitly
-		 */
-		public TestMessageHandler(boolean autoStart) {
-			this.isRecording = autoStart;
-		}
-
-		public void setIncludedDestinations(String... patterns) {
-			this.destinationPatterns.addAll(Arrays.asList(patterns));
-		}
-
-		public void startRecording() {
-			this.isRecording = true;
-		}
-
-		public void stopRecording() {
-			this.isRecording = false;
-		}
 
 		public Message<?> awaitMessage(long timeoutInMillis) throws InterruptedException {
 			return this.messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
@@ -363,22 +328,7 @@ public class StompBrokerRelayLoadApp {
 
 		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
-			if (this.isRecording) {
-				if (this.destinationPatterns.isEmpty()) {
-					this.messages.add(message);
-				}
-				else {
-					StompHeaderAccessor headers = StompHeaderAccessor.wrap(message);
-					if (headers.getDestination() != null) {
-						for (String pattern : this.destinationPatterns) {
-							if (this.matcher.match(pattern, headers.getDestination())) {
-								this.messages.add(message);
-								break;
-							}
-						}
-					}
-				}
-			}
+			this.messages.add(message);
 		}
 	}
 
