@@ -1,45 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="en" ng-app="springPortfolio">
+<head>
     <meta charset="utf-8">
     <title>Stock Trading Portfolio</title>
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-    <link href="assets/lib/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="assets/common/portfolio.css" rel="stylesheet">
-  </head>
-  <body>
+    <link href="webjars/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="webjars/flat-ui/bcaf2de95e/css/flat-ui.css" rel="stylesheet">
+    <link href="static/css/portfolio.css" rel="stylesheet">
+</head>
+<body>
+<div class="container" ng-controller="PortfolioController">
 
-    <div class="container">
-      <div id="heading" class="masthead">
-        <div class="pull-right">
-          <span class="text-info" data-bind="text: username"><em></em></span>&nbsp;
-          <button data-bind="click: logout" class="btn"><i class="icon-off"></i></button>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-01">
+                <span class="sr-only">Toggle navigation</span>
+            </button>
+            <a class="navbar-brand" href="#">Stock Trading Portfolio</a>
         </div>
-        <h3 class="muted">Stock Trading Portfolio</h3>
-      </div>
-      <div id="main-content">
-        <p>There are two flavors of this app available: one built on stomp.js,
-        and the other built with cujoJS</p>
-        <ul>
-          <li>
-            <p>The traditional version uses script tags to load the application dependencies 
-            and <a href="http://jmesnil.net/stomp-websocket/doc/">stomp.js</a> as the messaging layer.</p>
-            <p><a href="traditional/index.html">Take me to the <strong>traditional</strong> version</a></p>
-          </li>
-          <li>
-            <p>The <a href="http://cujojs.com">cujoJS</a> version leverages AMD modules 
-            loaded with <a href="https://github.com/cujojs/curl">curl.js</a> and a 
-            message bus with <a href="https://github.com/cujojs/curl">msgs.js</a></p>
-            <p><a href="cujojs/index.html">Take me to the <strong>cujoJS</strong> version</a></p>
-          </li>
-        </ul>
-        <p>Both flavors of the application utilize <a href="http://knockoutjs.com/">Knockout.js</a>
-        for data binding and <a href="http://sockjs.org">SockJS</a> as a WebSocket polyfill.
-        <a href="http://stomp.github.io/">STOMP</a> is used as a higher level messaging protocol
-        on top of a raw WebSocket. <a href="http://getbootstrap.com/">Twitter Bootstrap</a> is
-        used for styling.</p>
-      </div>
+        <div class="collapse navbar-collapse" id="navbar-collapse-01">
+            <a class="btn btn-default navbar-btn navbar-right logout" href="logout.html" target="_self" ng-click="logout()">
+                <span class="glyphicon glyphicon glyphicon-off"></span>
+            </a>
+        </div>
+    </nav>
+    <div id="main-content">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Company</th>
+                <th>Ticker</th>
+                <th class="number">Price</th>
+                <th class="number">Change</th>
+                <th class="number">%</th>
+                <th class="number">Shares</th>
+                <th class="number">Value</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="(ticker, position) in positions">
+                <td>{{position.company}}</td>
+                <td>{{position.ticker}}</td>
+                <td class="number">{{position.price | currency:"$"}}</td>
+                <td class="number">
+                    <span ng-show="position.change > 0" class="glyphicon glyphicon-arrow-up"></span>
+                    <span ng-show="position.change == 0" class="glyphicon glyphicon-arrow-right"></span>
+                    <span ng-show="position.change < 0" class="glyphicon glyphicon-arrow-down"></span>
+                </td>
+                <td class="number">{{position.change | percent:position.price}}</td>
+                <td class="number">{{position.shares | number}}</td>
+                <td class="number">{{position.price * position.shares | currency:"$"}}</td>
+                <td class="trade-buttons">
+                    <button class="btn btn-primary" ng-click="openTradeModal('buy', position)">Buy</button>
+                    <button class="btn btn-primary" ng-click="openTradeModal('sell', position)">Sell</button>
+                </td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="5">Total</td>
+                <td class="number">{{positions | totalPortfolioShares | number}}</td>
+                <td class="number">{{positions | totalPortfolioValue | currency:"$"}}</td>
+                <td></td>
+            </tr>
+            </tfoot>
+            <tbody></tbody>
+        </table>
     </div>
+    <div class="alert alert-warning">
+        <h5>Notifications</h5>
+        <ul>
+            <li ng-repeat="notification in notifications">{{notification}}</li>
+        </ul>
+    </div>
+</div>
+<script type="text/ng-template" id="tradeModal.html">
+    <form class="form-horizontal">
+        <div class="modal-header">
+            <h4 class="modal-title">{{ action }} {{ position.ticker }} Stock</h4>
+        </div>
+        <div class="modal-body">
+            <div class="control-group">
+                <label class="control-label" for="inputShares">Shares</label>
+                <div class="controls">
+                    <input id="inputShares" type="text" ng-model="numberOfShares">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancel()">Close</button>
+            <button type="button" class="btn btn-primary" ng-click="trade()">Trade</button>
+        </div>
+    </form>
+</script>
 
-  </body>
+<!-- 3rd party -->
+<script src="webjars/jquery/1.11.1/jquery.min.js"></script>
+<script src="webjars/bootstrap/3.3.6/js/bootstrap.js"></script>
+<script src="webjars/sockjs-client/1.0.2/sockjs.min.js"></script>
+<script src="webjars/stomp-websocket/2.3.3/stomp.min.js"></script>
+<script src="webjars/angular/1.5.0/angular.min.js"></script>
+<script src="webjars/angular-ui-bootstrap-bower/1.2.2/ui-bootstrap.min.js"></script>
+<script src="webjars/angular-ui-bootstrap-bower/1.2.2/ui-bootstrap-tpls.min.js"></script>
+
+<!-- application -->
+<script src="static/js/app.js"></script>
+<script src="static/js/controllers.js"></script>
+<script src="static/js/services.js"></script>
+
+</body>
 </html>

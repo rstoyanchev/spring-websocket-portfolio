@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8">
   <title>Sign in &middot; Stock Trading Portfolio Sign in</title>
-  <link href="assets/lib/bootstrap/css/bootstrap.css" rel="stylesheet">
-  <link href="assets/common/login.css" rel="stylesheet">
+  <link href="webjars/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+  <link href="static/css/login.css" rel="stylesheet">
 </head>
 <body>
-
   <div class="container">
+    <!--
     <div data-bind="visible: showErrorMessage" class="alert alert-error">
       Invalid username/password.
     </div>
+    -->
     <form class="form-signin" method="post" action="login.html">
       <h3 class="muted form-signin-heading">Please sign in</h3>
       <input type="text" class="input-block-level" placeholder="User name" name="username">
@@ -22,18 +23,5 @@
         Log in as <strong>fabrice/fab123</strong> or <strong>paulson/bond</strong><br>
         See <code>WebSecurityConfig.java</code></small></p>
     </form>
-  </div><!-- /container -->
-
-  <script src="assets/lib/knockout/knockout.js"></script>
-
-  <script type="text/javascript">
-    ko.applyBindings({
-      showErrorMessage : ko.computed(function() {
-        var query = window.location.search;
-        return query ? (query.indexOf('error') != -1) : false;
-      })
-    });
-  </script>
-
 </body>
 </html>

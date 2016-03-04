@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.portfolio.config;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +30,7 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
  */
 @EnableWebSecurity
 @Configuration
+@ComponentScan("org.springframework.samples.portfolio")
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
@@ -53,7 +55,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.permitAll()
 				.and()
 			.authorizeRequests()
-				.antMatchers("/assets/**").permitAll()
+				.antMatchers("/static/**").permitAll()
+				.antMatchers("/webjars/**").permitAll()
 				.anyRequest().authenticated()
 				.and();
 	}
