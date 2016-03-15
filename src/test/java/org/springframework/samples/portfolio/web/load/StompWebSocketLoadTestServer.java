@@ -156,7 +156,6 @@ public class StompWebSocketLoadTestServer {
 			return false;
 		}
 
-		@Bean
 		public HomeController homeController() {
 			return new HomeController();
 		}
