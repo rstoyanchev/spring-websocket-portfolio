@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.core.MessageSendingOperations;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.broker.BrokerAvailabilityEvent;
 import org.springframework.samples.portfolio.Portfolio;
 import org.springframework.samples.portfolio.PortfolioPosition;
@@ -67,7 +66,7 @@ public class TradeServiceImpl implements TradeService, ApplicationListener<Broke
                 portfolio.buy(ticker, sharesToTrade) : portfolio.sell(ticker, sharesToTrade);
         final PortfolioAuthentication authentication = (PortfolioAuthentication) principal;
         if (newPosition == null) {
-            String payload = "Rejected trade " + trade;
+            String payload = "{\"error\":\"Rejected trade\"}";
             if (this.brokerAvailable.get())
                 this.messagingTemplate.convertAndSend("/topic/session.errors." + authentication.getToken(), payload);
             return;
@@ -76,25 +75,12 @@ public class TradeServiceImpl implements TradeService, ApplicationListener<Broke
         map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
         if (this.brokerAvailable.get())
             this.messagingTemplate.convertAndSend("/topic/session.update." + authentication.getToken(),
-                    new TradeResult(trade.getUsername(), newPosition));
+                    newPosition);
     }
 
     @Override
     public void onApplicationEvent(BrokerAvailabilityEvent event) {
         this.brokerAvailable.set(event.isBrokerAvailable());
-    }
-
-    private static class TradeResult {
-
-        private final String user;
-        private final PortfolioPosition position;
-        private final long timestamp;
-
-        public TradeResult(String user, PortfolioPosition position) {
-            this.user = user;
-            this.position = position;
-            this.timestamp = System.currentTimeMillis();
-        }
     }
 
 }

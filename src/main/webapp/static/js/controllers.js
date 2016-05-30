@@ -13,6 +13,7 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
                 existing.change = quote.price - existing.price;
                 existing.price = quote.price;
             }
+            $scope.$applyAsync();
         };
         var udpatePosition = function(position) {
             var existing = $scope.positions[position.ticker];

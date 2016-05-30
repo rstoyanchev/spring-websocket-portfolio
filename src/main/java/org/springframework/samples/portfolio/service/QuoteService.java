@@ -37,74 +37,74 @@ import org.springframework.stereotype.Service;
 @Service
 public class QuoteService implements ApplicationListener<BrokerAvailabilityEvent> {
 
-	private static Log logger = LogFactory.getLog(QuoteService.class);
+    private static Log logger = LogFactory.getLog(QuoteService.class);
 
-	private final MessageSendingOperations<String> messagingTemplate;
+    private final MessageSendingOperations<String> messagingTemplate;
 
-	private final StockQuoteGenerator quoteGenerator = new StockQuoteGenerator();
+    private final StockQuoteGenerator quoteGenerator = new StockQuoteGenerator();
 
-	private AtomicBoolean brokerAvailable = new AtomicBoolean();
-
-
-	@Autowired
-	public QuoteService(MessageSendingOperations<String> messagingTemplate) {
-		this.messagingTemplate = messagingTemplate;
-	}
-
-	@Override
-	public void onApplicationEvent(BrokerAvailabilityEvent event) {
-		this.brokerAvailable.set(event.isBrokerAvailable());
-	}
-
-//	@Scheduled(fixedDelay=2000)
-	public void sendQuotes() {
-		for (Quote quote : this.quoteGenerator.generateQuotes()) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("Sending quote " + quote);
-			}
-			if (this.brokerAvailable.get()) {
-				this.messagingTemplate.convertAndSend("/topic/price.stock." + quote.getTicker(), quote);
-			}
-		}
-	}
+    private AtomicBoolean brokerAvailable = new AtomicBoolean();
 
 
-	private static class StockQuoteGenerator {
+    @Autowired
+    public QuoteService(MessageSendingOperations<String> messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
 
-		private static final MathContext mathContext = new MathContext(2);
+    @Override
+    public void onApplicationEvent(BrokerAvailabilityEvent event) {
+        this.brokerAvailable.set(event.isBrokerAvailable());
+    }
 
-		private final Random random = new Random();
+    //	@Scheduled(fixedDelay=2000)
+    public void sendQuotes() {
+        for (Quote quote : this.quoteGenerator.generateQuotes()) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("Sending quote " + quote);
+            }
+            if (this.brokerAvailable.get()) {
+                this.messagingTemplate.convertAndSend("/topic/price.stock." + quote.getTicker(), quote);
+            }
+        }
+    }
 
-		private final Map<String, String> prices = new ConcurrentHashMap<>();
+
+    public static class StockQuoteGenerator {
+
+        private static final MathContext mathContext = new MathContext(2);
+
+        private final Random random = new Random();
+
+        private final Map<String, String> prices = new ConcurrentHashMap<>();
 
 
-		public StockQuoteGenerator() {
-			this.prices.put("CTXS", "24.30");
-			this.prices.put("DELL", "13.03");
-			this.prices.put("EMC", "24.13");
-			this.prices.put("GOOG", "893.49");
-			this.prices.put("MSFT", "34.21");
-			this.prices.put("ORCL", "31.22");
-			this.prices.put("RHT", "48.30");
-			this.prices.put("VMW", "66.98");
-		}
+        public StockQuoteGenerator() {
+            this.prices.put("CTXS", "24.30");
+            this.prices.put("DELL", "13.03");
+            this.prices.put("EMC", "24.13");
+            this.prices.put("GOOG", "893.49");
+            this.prices.put("MSFT", "34.21");
+            this.prices.put("ORCL", "31.22");
+            this.prices.put("RHT", "48.30");
+            this.prices.put("VMW", "66.98");
+        }
 
-		public Set<Quote> generateQuotes() {
-			Set<Quote> quotes = new HashSet<>();
-			for (String ticker : this.prices.keySet()) {
-				BigDecimal price = getPrice(ticker);
-				quotes.add(new Quote(ticker, price));
-			}
-			return quotes;
-		}
+        public Set<Quote> generateQuotes() {
+            Set<Quote> quotes = new HashSet<>();
+            for (String ticker : this.prices.keySet()) {
+                BigDecimal price = getPrice(ticker);
+                quotes.add(new Quote(ticker, price));
+            }
+            return quotes;
+        }
 
-		private BigDecimal getPrice(String ticker) {
-			BigDecimal seedPrice = new BigDecimal(this.prices.get(ticker), mathContext);
-			double range = seedPrice.multiply(new BigDecimal(0.02)).doubleValue();
-			BigDecimal priceChange = new BigDecimal(String.valueOf(this.random.nextDouble() * range), mathContext);
-			return seedPrice.add(priceChange);
-		}
+        private BigDecimal getPrice(String ticker) {
+            BigDecimal seedPrice = new BigDecimal(this.prices.get(ticker), mathContext);
+            double range = seedPrice.multiply(new BigDecimal(0.02)).doubleValue();
+            BigDecimal priceChange = new BigDecimal(String.valueOf(this.random.nextDouble() * range), mathContext);
+            return seedPrice.add(priceChange);
+        }
 
-	}
+    }
 
 }
