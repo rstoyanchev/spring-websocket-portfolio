@@ -16,8 +16,10 @@
 package org.springframework.samples.portfolio.service;
 
 
+import java.security.Principal;
+
 public interface TradeService {
 
-	void executeTrade(Trade trade);
+	void executeTrade(Trade trade, Principal principal);
 
 }

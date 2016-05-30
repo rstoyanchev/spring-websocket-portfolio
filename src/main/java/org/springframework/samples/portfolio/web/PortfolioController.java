@@ -60,7 +60,7 @@ public class PortfolioController {
 	public void executeTrade(Trade trade, Principal principal) {
 		trade.setUsername(principal.getName());
 		logger.debug("Trade: " + trade);
-		this.tradeService.executeTrade(trade);
+		this.tradeService.executeTrade(trade, principal);
 	}
 
 	@MessageExceptionHandler

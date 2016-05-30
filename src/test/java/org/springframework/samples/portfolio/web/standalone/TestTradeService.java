@@ -19,6 +19,7 @@ package org.springframework.samples.portfolio.web.standalone;
 import org.springframework.samples.portfolio.service.Trade;
 import org.springframework.samples.portfolio.service.TradeService;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class TestTradeService  implements TradeService {
 	}
 
 	@Override
-	public void executeTrade(Trade trade) {
+	public void executeTrade(Trade trade, Principal principal) {
 		this.trades.add(trade);
 	}
 

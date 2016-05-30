@@ -62,7 +62,7 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
             tradeService.disconnect();
         };
 
-        tradeService.connect("/spring-websocket-portfolio/portfolio")
+        tradeService.connect("/spring-websocket-portfolio/portfolio?access_token=abc")
             .then(function (username) {
                     $scope.username = username;
                     pushNotification("Trade results take a 2-3 second simulated delay. Notifications will appear.");

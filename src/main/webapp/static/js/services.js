@@ -1,6 +1,6 @@
 angular.module('springPortfolio.services', [])
     //.constant('sockJsProtocols', ["xhr-streaming", "xhr-polling"]) // only allow XHR protocols
-    .constant('sockJsProtocols', [])
+    .constant('sockJsProtocols', ["websocket"])
     .factory('StompClient', ['sockJsProtocols', '$q', function (sockJsProtocols, $q) {
         var stompClient;
         var wrappedSocket = {
@@ -74,15 +74,43 @@ angular.module('springPortfolio.services', [])
             fetchQuoteStream: function () {
                 return stompClient.subscribe("/topic/price.stock.*");
             },
+            fetchEventStream: function () {
+                return stompClient.subscribe("/topic/session.event.abc");
+            },
             fetchPositionUpdateStream: function () {
-                return stompClient.subscribe("/user/queue/position-updates");
+                return stompClient.subscribe("/topic/session.update.abc");
             },
             fetchErrorStream: function () {
-                return stompClient.subscribe("/user/queue/errors");
+                return stompClient.subscribe("/topic/session.errors.abc");
             },
             sendTradeOrder: function(tradeOrder) {
                 return stompClient.send("/app/trade", {}, JSON.stringify(tradeOrder));
             }
         };
 
-    }]);
+    }])
+    .config(function ($provide) {
+        $provide.decorator('$rootScope', ['$delegate', function ($delegate) {
+            Object.defineProperty($delegate.constructor.prototype, '$bus', {
+                get: function () {
+                    var self = this;
+
+                    return {
+                        subscribe: function () {
+                            var sub = postal.subscribe.apply(postal, arguments);
+
+                            self.$on('$destroy',
+                                function () {
+                                    sub.unsubscribe();
+                                });
+                        },
+                        channel: postal.channel,
+                        publish: postal.publish.bind(postal)
+                    };
+                },
+                enumerable: false
+            });
+
+            return $delegate;
+        }]);
+    });

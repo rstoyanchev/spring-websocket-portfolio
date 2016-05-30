@@ -12,6 +12,12 @@ Server-side runs on `Tomcat 7.0.47+`, `Jetty 9.0.7+`, or `Glassfish 4.0`. Other 
 
 Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framework-4-0-m2-websocket-messaging-architectures/) introducing these features.
 
+### Preparation
+
+So far I've not succeeded on calling lodash from webjar so install it manually:
+
+`bower install lodash#3.10.1`
+
 ### Tomcat 7/8
 
 The app has been tested with this `Tomcat 8 RC10` as well as `Tomcat 7.0.47` which includes a backport of the Tomcat 8 WebSocket support.
