@@ -1,16 +1,33 @@
 ## Overview
 
 A sample demonstrating capabilities in the Spring Framework to build WebSocket-style messaging applications. The application uses [STOMP](http://stomp.github.io/) (over WebSocket) for messaging between browsers and server and [SockJS](https://github.com/sockjs/sockjs-protocol) for WebSocket fallback options.
+Well, that's the original example. I modified a bit by using postal.js to do message broker thing on client side and 
+using only one topic on the backend side. The idea is using only one queue on the backend to hold any message that will be sent to browser
+because after trying the real message broker, rabbitmq in this case, there were queue left over that keep piling up
+when the user is disconnected or server died.
+To simulate security, I used token based authentication on URL endpoint that is used when initializing stomp connection.
+See WebSocketConfig for auth logic. It is as simple as checking token existence. You can go further by validating the token and
+return the actual principal based on your token in distributed fashion (it can be useful in polyglot architecture 
+just don't forget to set allowed origin if you do so). The other idea came to mind is, instead of relying on queue on message dispatch,
+it is better using topic for publishing message so that you can load balance your websocket server and still keep recognize
+who is connecting by token as mentioned earlier.
 
 Client-side libraries used:
 * [stomp-websocket](https://github.com/jmesnil/stomp-websocket/)
 * [sockjs-client](https://github.com/sockjs/sockjs-client)
 * [Twitter Bootstrap](http://twitter.github.io/bootstrap/)
 * [Knockout.js](http://knockoutjs.com/)
+* [Postal.js](https://github.com/postaljs/postal.js)
 
 Server-side runs on `Tomcat 7.0.47+`, `Jetty 9.0.7+`, or `Glassfish 4.0`. Other servlet containers should also function correctly via fallback options (assuming Servlet 3.0) but they don't support WebSocket yet.
 
 Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framework-4-0-m2-websocket-messaging-architectures/) introducing these features.
+
+### Preparation
+
+So far I've not succeeded on calling lodash from webjar so install it manually:
+
+`bower install lodash#3.10.1`
 
 ### Tomcat 7/8
 

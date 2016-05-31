@@ -4,6 +4,7 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
     .controller('PortfolioController',
     ['$scope', '$uibModal', 'TradeService',
     function ($scope, $uibModal, tradeService) {
+        var bus = $scope.$bus;
         $scope.notifications = [];
         $scope.positions = {};
 
@@ -13,6 +14,7 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
                 existing.change = quote.price - existing.price;
                 existing.price = quote.price;
             }
+            $scope.$applyAsync();
         };
         var udpatePosition = function(position) {
             var existing = $scope.positions[position.ticker];
@@ -21,16 +23,16 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
             }
         };
         var pushNotification = function(message) {
-            $scope.notifications.unshift(message);
+            $scope.notifications.push(message);
         };
 
         var validateTrade = function(trade) {
             if (isNaN(trade.shares) || (trade.shares < 1)) {
-                $scope.notifications.push("Trade Error: Invalid number of shares");
+                pushNotification("Trade Error: Invalid number of shares");
                 return false;
             }
             if ((trade.action === "Sell") && (trade.shares > $scope.positions[trade.ticker].shares)) {
-                $scope.notifications.push("Trade Error: Not enough shares");
+                pushNotification("Trade Error: Not enough shares");
                 return false;
             }
             return true;
@@ -61,8 +63,28 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
         $scope.logout = function() {
             tradeService.disconnect();
         };
-
-        tradeService.connect("/spring-websocket-portfolio/portfolio")
+        bus.subscribe({
+            channel: "session",
+            topic: "update.share",
+            callback: function(data, envelope){
+                udpatePosition(data);
+            }
+        });
+        bus.subscribe({
+            channel: "session",
+            topic: "update.price",
+            callback: function(data, envelope){
+                processQuote(data);
+            }
+        });
+        bus.subscribe({
+            channel: "session",
+            topic: "error",
+            callback: function(data, envelope){
+                pushNotification(data);
+            }
+        });
+        tradeService.connect("/spring-websocket-portfolio/portfolio?access_token=abc")
             .then(function (username) {
                     $scope.username = username;
                     pushNotification("Trade results take a 2-3 second simulated delay. Notifications will appear.");
@@ -75,19 +97,33 @@ angular.module('springPortfolio.controllers', ['ui.bootstrap'])
                 positions.forEach(function(pos) {
                     $scope.positions[pos.ticker] = pos;
                 });
-                tradeService.fetchQuoteStream().then(null, null,
-                    function(quote) {
-                        processQuote(quote);
-                    }
-                );
-                tradeService.fetchPositionUpdateStream().then(null, null,
-                    function(position) {
-                        udpatePosition(position);
-                    }
-                );
-                tradeService.fetchErrorStream().then(null, null,
-                    function (error) {
-                        pushNotification(error);
+                // fetch event stream and parse the event
+                tradeService.subscribeEventStream().then(null, null,
+                    function (event) {
+                        if(event.error){
+                            bus.publish({
+                                channel: "session",
+                                topic: "error",
+                                data: event
+                            });
+                            return;
+                        }
+                        // share update
+                        if(event.shares){
+                            bus.publish({
+                                channel: "session",
+                                topic: "update.share",
+                                data: event
+                            });
+                            return;
+                        }
+
+                        // price update
+                        bus.publish({
+                            channel: "session",
+                            topic: "update.price",
+                            data: event
+                        });
                     }
                 );
             });
