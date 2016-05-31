@@ -6,3 +6,4 @@ target
 /.idea/
 bin
 .gradle
+/src/main/webapp/static/bower/

@@ -74,7 +74,7 @@ angular.module('springPortfolio.services', [])
             fetchQuoteStream: function () {
                 return stompClient.subscribe("/topic/price.stock.*");
             },
-            fetchEventStream: function () {
+            subscribeEventStream: function () {
                 return stompClient.subscribe("/topic/session.event.abc");
             },
             fetchPositionUpdateStream: function () {

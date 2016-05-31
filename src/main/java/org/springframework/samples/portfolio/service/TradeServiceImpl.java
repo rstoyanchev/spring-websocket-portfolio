@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.portfolio.service;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,8 @@ public class TradeServiceImpl implements TradeService, ApplicationListener<Broke
 
     private final AtomicBoolean brokerAvailable = new AtomicBoolean();
 
+    private final Gson gson = new Gson();
+
 
     @Autowired
     public TradeServiceImpl(MessageSendingOperations<String> messagingTemplate, PortfolioService portfolioService) {
@@ -66,15 +70,18 @@ public class TradeServiceImpl implements TradeService, ApplicationListener<Broke
                 portfolio.buy(ticker, sharesToTrade) : portfolio.sell(ticker, sharesToTrade);
         final PortfolioAuthentication authentication = (PortfolioAuthentication) principal;
         if (newPosition == null) {
-            String payload = "{\"error\":\"Rejected trade\"}";
+            final JsonObject json = new JsonObject();
+            json.addProperty("error", "Rejectred trade.");
+            json.add("detail", gson.toJsonTree(trade));
             if (this.brokerAvailable.get())
-                this.messagingTemplate.convertAndSend("/topic/session.errors." + authentication.getToken(), payload);
+                this.messagingTemplate.convertAndSend("/topic/session.event." + authentication.getToken(),
+                        json.toString());
             return;
         }
         Map<String, Object> map = new HashMap<>();
         map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
         if (this.brokerAvailable.get())
-            this.messagingTemplate.convertAndSend("/topic/session.update." + authentication.getToken(),
+            this.messagingTemplate.convertAndSend("/topic/session.event." + authentication.getToken(),
                     newPosition);
     }
 
