@@ -131,7 +131,6 @@ public class IntegrationPortfolioTests {
 		List<Transport> transports = new ArrayList<>();
 		transports.add(new WebSocketTransport(new StandardWebSocketClient()));
 		RestTemplateXhrTransport xhrTransport = new RestTemplateXhrTransport(new RestTemplate());
-		xhrTransport.setRequestHeaders(headers);
 		transports.add(xhrTransport);
 
 		sockJsClient = new SockJsClient(transports);
