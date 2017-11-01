@@ -8,17 +8,11 @@ Client-side libraries used:
 * [Twitter Bootstrap](http://twitter.github.io/bootstrap/)
 * [Knockout.js](http://knockoutjs.com/)
 
-Server-side runs on `Tomcat 7.0.47+`, `Jetty 9.0.7+`, or `Glassfish 4.0`. Other servlet containers should also function correctly via fallback options (assuming Servlet 3.0) but they don't support WebSocket yet.
+Server-side runs on Tomcat, Jetty, WildFly, Glassfish, and other Servlet 3.0+ containers with WebSocket support.
 
-Also see the [blog post](http://blog.springsource.org/2013/07/24/spring-framework-4-0-m2-websocket-messaging-architectures/) introducing these features.
+### Tomcat
 
-### Tomcat 7/8
-
-The app has been tested with this `Tomcat 8 RC10` as well as `Tomcat 7.0.47` which includes a backport of the Tomcat 8 WebSocket support.
-
-For Tomcat 8, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
-
-For Tomcat 7, you can use `mvn tomcat7:run`.
+For Tomcat, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
@@ -46,8 +40,6 @@ Set `GLASSFISH4_HOME` as an environment variable and use [deployGlassfish.sh](ht
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
 ### WildFly/Undertow
-
-Support available startin with Spring Framework 4.0.1. Requires WildFly 8.0.0.Final.
 
 Unzip the WildFly server.
 
