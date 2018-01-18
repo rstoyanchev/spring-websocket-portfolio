@@ -6,10 +6,10 @@ angular.module('springPortfolio.services', [])
         var wrappedSocket = {
             init: function (url) {
                 if (sockJsProtocols.length > 0) {
-                    stompClient = Stomp.over(new SockJS(url, null, {transports: sockJsProtocols}));
+                    stompClient = webstomp.over(new SockJS(url, null, {transports: sockJsProtocols}));
                 }
                 else {
-                    stompClient = Stomp.over(new SockJS(url));
+                    stompClient = webstomp.over(new SockJS(url));
                 }
             },
             connect: function () {
@@ -50,8 +50,8 @@ angular.module('springPortfolio.services', [])
                     }
                 });
             },
-            send: function (destination, headers, object) {
-                stompClient.send(destination, headers, object);
+            send: function (destination, object, headers) {
+                stompClient.send(destination, object, headers);
             }
         };
         return wrappedSocket;
@@ -81,7 +81,7 @@ angular.module('springPortfolio.services', [])
                 return stompClient.subscribe("/user/queue/errors");
             },
             sendTradeOrder: function(tradeOrder) {
-                return stompClient.send("/app/trade", {}, JSON.stringify(tradeOrder));
+                return stompClient.send("/app/trade", JSON.stringify(tradeOrder), {});
             }
         };
 
