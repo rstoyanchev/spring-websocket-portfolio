@@ -7,7 +7,7 @@
 	<version>1.0.0-SNAPSHOT</version>
 
 	<properties>
-		<org.springframework-version>5.0.1.RELEASE</org.springframework-version>
+		<org.springframework-version>4.3.14.RELEASE</org.springframework-version>
 		<org.springframework.security-version>4.2.3.RELEASE</org.springframework.security-version>
 	</properties>
 
@@ -59,9 +59,9 @@
 
 		<!-- Required when the "stomp-broker-relay" profile is enabled -->
 		<dependency>
-			<groupId>io.projectreactor.ipc</groupId>
-			<artifactId>reactor-netty</artifactId>
-			<version>0.7.1.RELEASE</version>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-net</artifactId>
+			<version>2.0.9.BUILD-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
