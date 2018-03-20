@@ -16,9 +16,6 @@
 
 package org.springframework.samples.portfolio.web.tomcat;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +37,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -62,14 +57,12 @@ import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.SocketUtils;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -77,6 +70,8 @@ import org.springframework.web.socket.sockjs.client.RestTemplateXhrTransport;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+
+import static org.junit.Assert.*;
 
 /**
  * End-to-end integration tests that run an embedded Tomcat server and establish
@@ -143,27 +138,21 @@ public class IntegrationPortfolioTests {
 
 		new RestTemplate().execute(url, HttpMethod.POST,
 
-				new RequestCallback() {
-					@Override
-					public void doWithRequest(ClientHttpRequest request) throws IOException {
-						MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-						map.add("username", user);
-						map.add("password", password);
-						new FormHttpMessageConverter().write(map, MediaType.APPLICATION_FORM_URLENCODED, request);
-					}
+				request -> {
+					MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+					map.add("username", user);
+					map.add("password", password);
+					new FormHttpMessageConverter().write(map, MediaType.APPLICATION_FORM_URLENCODED, request);
 				},
 
-				new ResponseExtractor<Object>() {
-					@Override
-					public Object extractData(ClientHttpResponse response) throws IOException {
-						headersToUpdate.add("Cookie", response.getHeaders().getFirst("Set-Cookie"));
-						return null;
-					}
+				response -> {
+					headersToUpdate.add("Cookie", response.getHeaders().getFirst("Set-Cookie"));
+					return null;
 				});
 	}
 
 	@AfterClass
-	public static void teardown() throws Exception {
+	public static void teardown() {
 		if (server != null) {
 			try {
 				server.undeployConfig();
@@ -236,7 +225,7 @@ public class IntegrationPortfolioTests {
 	public void executeTrade() throws Exception {
 
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> failure = new AtomicReference<>();
 
 		StompSessionHandler handler = new AbstractTestSessionHandler(failure) {
 
@@ -308,7 +297,7 @@ public class IntegrationPortfolioTests {
 			excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION, value = Configuration.class)
 	)
 	@EnableWebSocketMessageBroker
-	static class TestWebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+	static class TestWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 		@Autowired
 		Environment env;

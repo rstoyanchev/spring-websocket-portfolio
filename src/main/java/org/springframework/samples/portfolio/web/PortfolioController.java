@@ -50,7 +50,7 @@ public class PortfolioController {
 	}
 
 	@SubscribeMapping("/positions")
-	public List<PortfolioPosition> getPositions(Principal principal) throws Exception {
+	public List<PortfolioPosition> getPositions(Principal principal) {
 		logger.debug("Positions for " + principal.getName());
 		Portfolio portfolio = this.portfolioService.findPortfolio(principal.getName());
 		return portfolio.getPositions();

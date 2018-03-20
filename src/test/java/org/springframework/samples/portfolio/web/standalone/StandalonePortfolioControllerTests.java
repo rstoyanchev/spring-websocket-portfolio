@@ -105,7 +105,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setDestination("/app/positions");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		headers.setSessionAttributes(new HashMap<String, Object>());
+		headers.setSessionAttributes(new HashMap<>());
 		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
 
 		this.annotationMethodHandler.handleMessage(message);
@@ -139,7 +139,7 @@ public class StandalonePortfolioControllerTests {
 		headers.setDestination("/app/trade");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		headers.setSessionAttributes(new HashMap<String, Object>());
+		headers.setSessionAttributes(new HashMap<>());
 		Message<byte[]> message = MessageBuilder.withPayload(payload).setHeaders(headers).build();
 
 		this.annotationMethodHandler.handleMessage(message);

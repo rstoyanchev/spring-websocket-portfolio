@@ -106,7 +106,7 @@ public class TomcatWebSocketTestServer implements WebSocketTestServer {
 		this.context.addApplicationListener(WsContextListener.class.getName());
 
 		this.context.addServletContainerInitializer(
-				new SpringServletContainerInitializer(), new HashSet<Class<?>>(Arrays.asList(initializers)));
+				new SpringServletContainerInitializer(), new HashSet<>(Arrays.asList(initializers)));
 	}
 
 	public void undeployConfig() {

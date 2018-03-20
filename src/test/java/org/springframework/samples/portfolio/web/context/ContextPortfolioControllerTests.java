@@ -115,7 +115,7 @@ public class ContextPortfolioControllerTests {
 		headers.setDestination("/app/positions");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		headers.setSessionAttributes(new HashMap<String, Object>());
+		headers.setSessionAttributes(new HashMap<>());
 		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
 
 		this.clientOutboundChannelInterceptor.setIncludedDestinations("/app/positions");
@@ -150,7 +150,7 @@ public class ContextPortfolioControllerTests {
 		headers.setDestination("/app/trade");
 		headers.setSessionId("0");
 		headers.setUser(new TestPrincipal("fabrice"));
-		headers.setSessionAttributes(new HashMap<String, Object>());
+		headers.setSessionAttributes(new HashMap<>());
 		Message<byte[]> message = MessageBuilder.createMessage(payload, headers.getMessageHeaders());
 
 		this.brokerChannelInterceptor.setIncludedDestinations("/user/**");
