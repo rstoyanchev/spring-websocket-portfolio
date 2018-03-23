@@ -118,7 +118,7 @@ public class IntegrationPortfolioTests {
 		port = SocketUtils.findAvailableTcpPort();
 
 		server = new TomcatWebSocketTestServer(port);
-		server.deployConfig(TestDispatcherServletInitializer.class, WebSecurityInitializer.class);
+		server.deployWithInitializer(TestDispatcherServletInitializer.class, WebSecurityInitializer.class);
 		server.start();
 
 		loginAndSaveJsessionIdCookie("fabrice", "fab123", headers);

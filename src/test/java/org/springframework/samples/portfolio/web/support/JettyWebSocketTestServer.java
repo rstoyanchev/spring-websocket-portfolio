@@ -45,7 +45,7 @@ public class JettyWebSocketTestServer implements WebSocketTestServer {
 	}
 
 	@Override
-	public void deployConfig(WebApplicationContext cxt) {
+	public void deployDispatcherServlet(WebApplicationContext cxt) {
 		ServletContextHandler contextHandler = new ServletContextHandler();
 		ServletHolder servletHolder = new ServletHolder(new DispatcherServlet(cxt));
 		contextHandler.addServlet(servletHolder, "/");

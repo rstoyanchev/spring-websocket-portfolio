@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,33 +48,33 @@ public class TomcatWebSocketTestServer implements WebSocketTestServer {
 
 	private final int port;
 
+	private final File baseDir;
+
 	private Context context;
 
 
 	public TomcatWebSocketTestServer(int port) {
 
 		this.port = port;
+		this.baseDir = createBaseDir(port);
 
 		Connector connector = new Connector(Http11NioProtocol.class.getName());
         connector.setPort(this.port);
 
-        File baseDir = createTempDir("tomcat");
-        String baseDirPath = baseDir.getAbsolutePath();
-
 		this.tomcatServer = new Tomcat();
-		this.tomcatServer.setBaseDir(baseDirPath);
+		this.tomcatServer.setBaseDir(this.baseDir.getAbsolutePath());
 		this.tomcatServer.setPort(this.port);
         this.tomcatServer.getService().addConnector(connector);
         this.tomcatServer.setConnector(connector);
 	}
 
-	private File createTempDir(String prefix) {
+	private static File createBaseDir(int port) {
 		try {
-			File tempFolder = File.createTempFile(prefix + ".", "." + getPort());
-			tempFolder.delete();
-			tempFolder.mkdir();
-			tempFolder.deleteOnExit();
-			return tempFolder;
+			File file = File.createTempFile("tomcat.", "." + port);
+			file.delete();
+			file.mkdir();
+			file.deleteOnExit();
+			return file;
 		}
 		catch (IOException ex) {
 			throw new RuntimeException("Unable to create temp directory", ex);
@@ -86,27 +86,19 @@ public class TomcatWebSocketTestServer implements WebSocketTestServer {
 	}
 
 	@Override
-	public void deployConfig(WebApplicationContext cxt) {
-		this.context = this.tomcatServer.addContext("", System.getProperty("java.io.tmpdir"));
+	public void deployDispatcherServlet(WebApplicationContext cxt) {
+		this.context = this.tomcatServer.addContext("", this.baseDir.getAbsolutePath());
 		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(cxt));
 		this.context.addServletMappingDecoded("/", "dispatcherServlet");
+		this.context.addApplicationListener(WsContextListener.class.getName());
 	}
 
-	public void deployConfig(Class<? extends WebApplicationInitializer>... initializers) {
-
-        this.context = this.tomcatServer.addContext("", System.getProperty("java.io.tmpdir"));
-
-		// Add Tomcat's DefaultServlet
-		Wrapper defaultServlet = this.context.createWrapper();
-		defaultServlet.setName("default");
-		defaultServlet.setServletClass("org.apache.catalina.servlets.DefaultServlet");
-		this.context.addChild(defaultServlet);
-
-		// Ensure WebSocket support
+	public void deployWithInitializer(Class<? extends WebApplicationInitializer>... initializers) {
+        this.context = this.tomcatServer.addContext("", this.baseDir.getAbsolutePath());
+        Tomcat.addServlet(this.context, "default", "org.apache.catalina.servlets.DefaultServlet");
 		this.context.addApplicationListener(WsContextListener.class.getName());
-
-		this.context.addServletContainerInitializer(
-				new SpringServletContainerInitializer(), new HashSet<>(Arrays.asList(initializers)));
+		this.context.addServletContainerInitializer(new SpringServletContainerInitializer(),
+				new HashSet<>(Arrays.asList(initializers)));
 	}
 
 	public void undeployConfig() {

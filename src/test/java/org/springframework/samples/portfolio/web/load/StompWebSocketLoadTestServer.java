@@ -87,7 +87,7 @@ public class StompWebSocketLoadTestServer {
 				System.setProperty("spring.profiles.active", "test.tomcat");
 				server = new TomcatWebSocketTestServer(port);
 			}
-			server.deployConfig(cxt);
+			server.deployDispatcherServlet(cxt);
 			server.start();
 
 			System.out.println("Running on port " + port);
