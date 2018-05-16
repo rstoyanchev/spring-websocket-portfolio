@@ -7,8 +7,8 @@
 	<version>1.0.0-SNAPSHOT</version>
 
 	<properties>
-		<org.springframework-version>5.0.4.RELEASE</org.springframework-version>
-		<org.springframework.security-version>4.2.3.RELEASE</org.springframework.security-version>
+		<org.springframework-version>5.0.6.RELEASE</org.springframework-version>
+		<org.springframework.security-version>4.2.6.RELEASE</org.springframework.security-version>
 	</properties>
 
 	<dependencies>
