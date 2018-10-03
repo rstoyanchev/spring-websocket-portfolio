@@ -37,6 +37,25 @@ Set `WILDFLY_HOME` as an environment variable and use [deployWildFly.sh](https:/
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
+### WebSphere Liberty 16+
+
+Build and deploy with the following server configuration:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <server description="new server">
+        <!-- Enable features -->
+        <featureManager>
+            <feature>jsp-2.3</feature>
+            <feature>webSocket-1.1</feature>
+        </featureManager>
+        <!-- To access this server from a remote client add a host attribute to the following element, e.g. host="*" -->
+        <httpEndpoint id="defaultHttpEndpoint"
+                      httpPort="9080"
+                      httpsPort="9443" />
+        <!-- Automatically expand WAR files and EAR files -->
+        <applicationManager autoExpand="true"/>
+    </server>
+
 ### Glassfish
 
 After unzipping Glassfish 4 start the server:
