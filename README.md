@@ -10,15 +10,15 @@ Client-side libraries used:
 
 Server-side runs on Tomcat, Jetty, WildFly, Glassfish, and other Servlet 3.0+ containers with WebSocket support.
 
-### Tomcat
+### Tomcat 8.5+
 
 For Tomcat, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
-### Jetty 9
+### Jetty 9.4+
 
-The easiest way to run on Jetty 9 is `mvn jetty:run`.
+The easiest way to run on Jetty is with `mvn jetty:run`.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
@@ -29,6 +29,14 @@ Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index
     OPTIONS=annotations
     etc/jetty-annotations.xml
 
+### WildFly 10+
+
+Unzip the WildFly server.
+
+Set `WILDFLY_HOME` as an environment variable and use [deployWildFly.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployWildFly.sh) in this directory.
+
+Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
+
 ### Glassfish
 
 After unzipping Glassfish 4 start the server:
@@ -36,14 +44,6 @@ After unzipping Glassfish 4 start the server:
     <unzip_dir>/glassfish4/bin/asadmin start-domain
 
 Set `GLASSFISH4_HOME` as an environment variable and use [deployGlassfish.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployGlassfish.sh) in this directory.
-
-Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
-
-### WildFly/Undertow
-
-Unzip the WildFly server.
-
-Set `WILDFLY_HOME` as an environment variable and use [deployWildFly.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployWildFly.sh) in this directory.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 

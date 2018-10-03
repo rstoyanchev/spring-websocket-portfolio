@@ -16,8 +16,6 @@
 
 package org.springframework.samples.portfolio.web.load;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +45,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.StopWatch;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
+
+import static org.junit.Assert.*;
 
 /**
  * A load app that measures the throughput of messages sent through the
@@ -253,6 +253,15 @@ public class StompBrokerRelayLoadApp {
 		@Override
 		protected SimpUserRegistry createLocalUserRegistry() {
 			return new DefaultSimpUserRegistry();
+		}
+
+		@Override
+		protected SimpUserRegistry createLocalUserRegistry(Integer order) {
+			DefaultSimpUserRegistry registry = new DefaultSimpUserRegistry();
+			if (order != null) {
+				registry.setOrder(order);
+			}
+			return registry;
 		}
 
 		@Override
