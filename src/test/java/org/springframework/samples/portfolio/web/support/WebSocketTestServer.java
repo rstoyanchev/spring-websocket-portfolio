@@ -16,7 +16,6 @@
 
 package org.springframework.samples.portfolio.web.support;
 
-import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.WebApplicationContext;
 
 
