@@ -10,13 +10,13 @@ Client-side libraries used:
 
 Server-side runs on Tomcat, Jetty, WildFly, Glassfish, and other Servlet 3.0+ containers with WebSocket support.
 
-### Tomcat 8.5+
+### Tomcat
 
-For Tomcat, set `TOMCAT8_HOME` as an environment variable and use [deployTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat8.sh) and [shutdownTomcat8.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat8.sh) in this directory.
+For Tomcat, set `TOMCAT_HOME` as an environment variable and use [deployTomcat.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/deployTomcat.sh) and [shutdownTomcat.sh](https://github.com/rstoyanchev/spring-websocket-portfolio/blob/master/shutdownTomcat.sh) in this directory.
 
 Open a browser and go to <http://localhost:8080/spring-websocket-portfolio/index.html>
 
-### Jetty 9.4+
+### Jetty
 
 The easiest way to run on Jetty is with `mvn jetty:run`.
 
