@@ -29,6 +29,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -294,13 +295,23 @@ public class StompBrokerRelayLoadApp {
 		public void onApplicationEvent(ApplicationEvent event) {
 
 			if (event instanceof ContextRefreshedEvent) {
+				AbstractSubscribableChannel inChannel = clientInboundChannel(clientInboundChannelExecutor());
+				AbstractSubscribableChannel outChannel = clientOutboundChannel(clientOutboundChannelExecutor());
+
+				TaskExecutor brokerChannelExecutor = brokerChannelExecutor(inChannel, outChannel);
+				AbstractSubscribableChannel brokerChannel = brokerChannel(inChannel, outChannel, brokerChannelExecutor);
 
 				// We're only interested in broker relay message handling
-				simpAnnotationMethodMessageHandler().stop();
-				userDestinationMessageHandler().stop();
+				simpAnnotationMethodMessageHandler(inChannel, outChannel,
+						brokerMessagingTemplate(brokerChannel, inChannel, outChannel, brokerMessageConverter()),
+						brokerMessageConverter()).stop();
+
+				userDestinationMessageHandler(inChannel, outChannel,
+						brokerChannel,
+						userDestinationResolver(userRegistry(inChannel, outChannel), inChannel, outChannel)).stop();
 
 				// Register to capture broadcast messages
-				clientOutboundChannel().subscribe(clientOutboundMessageHandler());
+				outChannel.subscribe(clientOutboundMessageHandler());
 			}
 			else if (event instanceof BrokerAvailabilityEvent) {
 

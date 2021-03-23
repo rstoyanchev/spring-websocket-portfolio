@@ -27,11 +27,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -39,6 +41,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.samples.portfolio.web.support.JettyWebSocketTestServer;
 import org.springframework.samples.portfolio.web.support.TomcatWebSocketTestServer;
 import org.springframework.samples.portfolio.web.support.WebSocketTestServer;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.SocketUtils;
@@ -47,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
@@ -162,8 +166,13 @@ public class StompWebSocketLoadTestServer {
 		}
 
 		@Override
-		public WebSocketMessageBrokerStats webSocketMessageBrokerStats() {
-			WebSocketMessageBrokerStats stats = super.webSocketMessageBrokerStats();
+		public WebSocketMessageBrokerStats webSocketMessageBrokerStats(
+				AbstractBrokerMessageHandler relayHandler, WebSocketHandler webSocketHandler,
+				TaskExecutor inboundExecutor, TaskExecutor outboundExecutor, TaskScheduler taskScheduler) {
+
+			WebSocketMessageBrokerStats stats = super.webSocketMessageBrokerStats(
+					relayHandler, webSocketHandler, inboundExecutor, outboundExecutor, taskScheduler);
+
 			stats.setLoggingPeriod(5 * 1000);
 			return stats;
 		}
