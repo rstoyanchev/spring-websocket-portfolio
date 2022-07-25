@@ -13,21 +13,35 @@
 				<artifactId>spring-framework-bom</artifactId>
 				<type>pom</type>
 				<scope>import</scope>
-				<version>5.3.14</version>
+				<version>5.3.22</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-bom</artifactId>
 				<type>pom</type>
 				<scope>import</scope>
-				<version>5.6.1</version>
+				<version>5.6.6</version>
 			</dependency>
 			<dependency>
 				<groupId>io.projectreactor</groupId>
 				<artifactId>reactor-bom</artifactId>
 				<type>pom</type>
 				<scope>import</scope>
-				<version>2020.0.14</version>
+				<version>2020.0.21</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<type>pom</type>
+				<scope>import</scope>
+				<version>2.12.7</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-bom</artifactId>
+				<type>pom</type>
+				<scope>import</scope>
+				<version>2.18.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -61,12 +75,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.13.1</version>
-		</dependency>
-
 		<!-- Required when the "stomp-broker-relay" profile is enabled -->
 		<dependency>
 			<groupId>io.projectreactor.netty</groupId>
@@ -76,22 +84,18 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-jul</artifactId>
-			<version>LATEST</version>
 		</dependency>
 
 		<dependency>
@@ -121,7 +125,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>webjars-locator</artifactId>
-			<version>0.42</version>
+			<version>0.45</version>
 		</dependency>
 		<!-- Uncomment when deploying on Wildfly
 		<dependency>
@@ -182,38 +186,38 @@
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>9.0.56</version>
+            <version>9.0.65</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
-            <version>9.0.56</version>
+            <version>9.0.65</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-client</artifactId>
-            <version>9.4.44.v20210927</version>
+            <version>9.4.48.v20220622</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
-			<version>9.4.44.v20210927</version>
+			<version>9.4.48.v20220622</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
-			<version>9.4.44.v20210927</version>
+			<version>9.4.48.v20220622</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>
-			<version>9.4.44.v20210927</version>
+			<version>9.4.48.v20220622</version>
             <scope>test</scope>
         </dependency>
 
@@ -261,6 +265,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
@@ -292,7 +297,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.4.44.v20210927</version>
+                <version>9.4.48.v20220622</version>
                 <configuration>
                     <webApp>
                         <contextPath>/${project.artifactId}</contextPath>
